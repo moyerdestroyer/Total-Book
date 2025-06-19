@@ -18,6 +18,7 @@ const BookContentSections: React.FC<BookContentSectionsProps> = ({
   const contentRef = useRef<HTMLDivElement>(null); // Ref for visible content
   const hiddenRef = useRef<HTMLDivElement>(null); // Ref for hidden pagination calculation
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [pageHeight, setPageHeight] = useState<number>(0); // Store the visible container height
 
   // Track content container size
   useEffect(() => {
@@ -27,6 +28,7 @@ const BookContentSections: React.FC<BookContentSectionsProps> = ({
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         setContainerSize({ width, height });
+        setPageHeight(height); // Always update pageHeight to the visible area
       }
     });
 
@@ -75,26 +77,26 @@ const BookContentSections: React.FC<BookContentSectionsProps> = ({
 
   // Process sections and update pages
   const processSections = useCallback(() => {
-    if (!hiddenRef.current || !bookData) return;
+    if (!hiddenRef.current || !bookData || !pageHeight) return;
 
     const sections = getContentSections();
     console.log('Total sections to process:', sections.length);
 
-    // Get the content container height
-    const contentHeight = hiddenRef.current.offsetHeight;
-    console.log('Page height:', contentHeight);
+    // Use the VISIBLE container height as the pageHeight limit
+    const visiblePageHeight = pageHeight;
+    console.log('Page height (from visible .book-content):', visiblePageHeight);
 
     // Paginate the content
     const pages = paginateEbook(
       sections.map(section => section.html),
-      contentHeight,
+      visiblePageHeight,
       hiddenRef.current
     );
 
     // Update pages and notify parent
     setPages(pages);
     onPageChange(currentPage, pages.length);
-  }, [bookData, hiddenRef, currentPage, onPageChange]);
+  }, [bookData, hiddenRef, currentPage, onPageChange, pageHeight]);
 
   // Debounced pagination for resize events
   const debouncedPaginate = debounce(processSections, 200);
@@ -107,7 +109,7 @@ const BookContentSections: React.FC<BookContentSectionsProps> = ({
       window.removeEventListener('resize', debouncedPaginate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookData]);
+  }, [bookData, pageHeight]);
 
   return (
     <div className="e-reader">

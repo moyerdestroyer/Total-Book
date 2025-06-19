@@ -37,7 +37,6 @@ $content-font-size: 18px;
 
   section {
     position: relative;
-    overflow: hidden;
   }
 
   .aligncenter {
@@ -50,8 +49,57 @@ $content-font-size: 18px;
     height: auto;
   }
 
-  .book-chapter-title {
+  .book-cover {
+    margin: auto;
+  }
+
+  h1 {
     text-align: center;
+  }
+  h2 {
+    text-align: center;
+  }
+  .book-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: auto;
+    padding: 0 18px;
+    color: inherit;
+  }
+  .book-subtitle {
+    font-size: 2rem;
+    font-weight: 300;
+    margin: auto;
+    padding: 0 18px;
+    color: inherit;
+    font-style: italic;
+  }
+  .book-author {
+    font-size: 3rem;
+    text-align: center;
+    margin: auto;
+    padding: 0 18px;
+    color: inherit;
+  }
+
+  .book-copyright-page {
+    margin: auto;
+  }
+  .book-dedication {
+    margin: auto;
+  }
+
+  .book-toc-list {
+    text-align:center;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    li {
+      margin-bottom: 18px;
+    }
+  }
+
+  .book-chapter-title {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 18px;
@@ -73,13 +121,13 @@ $content-font-size: 18px;
       width: 100%;
     }
   }
+  
 }
 
 // Book Content Specific Styles
 .book-content {
   @include shared-content-styles;
   position: relative;
-  overflow: hidden;
 }
 
 // Measurement container
@@ -89,10 +137,9 @@ $content-font-size: 18px;
   opacity: 0;
   pointer-events: none;
   z-index: -1;
-  overflow: auto;
-  height: calc(var(--content-height) - #{$content-padding * 2});
   width: 100%;
   box-sizing: border-box;
+  height:fit-content;
 }
 
 // Book Content Wrapper

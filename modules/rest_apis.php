@@ -96,18 +96,23 @@ class Total_Book_REST_API {
             return new WP_Error('not_found', 'Book not found', array('status' => 404));
         }
 
-        // Get all book meta
+        // Get all book meta with defaults
         $meta = array(
-            'author' => get_post_meta($book_id, '_book_author', true),
-            'isbn' => get_post_meta($book_id, '_book_isbn', true),
-            'publication_date' => get_post_meta($book_id, '_book_publication_date', true),
-            'publisher' => get_post_meta($book_id, '_book_publisher', true),
-            'description' => get_post_meta($book_id, '_book_description', true),
-            'subtitle' => get_post_meta($book_id, '_book_subtitle', true),
-            'dedication' => get_post_meta($book_id, '_book_dedication', true),
-            'acknowledgments' => get_post_meta($book_id, '_book_acknowledgments', true),
-            'about_author' => get_post_meta($book_id, '_book_about_author', true),
+            'author' => get_post_meta($book_id, '_book_author', true) ?: '',
+            'isbn' => get_post_meta($book_id, '_book_isbn', true) ?: '',
+            'publication_date' => get_post_meta($book_id, '_book_publication_date', true) ?: '',
+            'publisher' => get_post_meta($book_id, '_book_publisher', true) ?: '',
+            'description' => get_post_meta($book_id, '_book_description', true) ?: '',
+            'subtitle' => get_post_meta($book_id, '_book_subtitle', true) ?: '',
+            'dedication' => get_post_meta($book_id, '_book_dedication', true) ?: '',
+            'acknowledgments' => get_post_meta($book_id, '_book_acknowledgments', true) ?: '',
+            'about_author' => get_post_meta($book_id, '_book_about_author', true) ?: '',
         );
+
+        // Remove any meta fields with empty values
+        $meta = array_filter($meta, function($value) {
+            return !empty($value);
+        });
 
         // Get book categories
         $categories = wp_get_post_terms($book_id, 'book_category', array('fields' => 'all'));
@@ -155,6 +160,89 @@ class Total_Book_REST_API {
         }
 
         // Structure the book content
+        $content = array();
+
+        // Cover
+        if (!empty($featured_image['url'])) {
+            $content['cover'] = apply_filters('tb_book_cover_rest', array(
+                'html' => '<img class="book-cover" src="' . esc_attr($featured_image['url']) . '" alt="' . esc_attr($book->post_title) . '" />',
+            ), $book_id);
+        }
+
+        // Title Page
+        if (!empty($book->post_title) || !empty($meta['subtitle'])) {
+            $content['title_page'] = apply_filters('tb_book_title_page_rest', array(
+                'html' => '<h1 class="book-title">' . esc_html($book->post_title) . '</h1>' .
+                          (!empty($meta['subtitle']) ? '<h2 class="book-subtitle">' . esc_html($meta['subtitle']) . '</h2>' : ''),
+            ), $book_id);
+        }
+
+        // Author Page
+        if (!empty($meta['author'])) {
+            $content['author_page'] = apply_filters('tb_book_author_page_rest', array(
+                'author' => '<p class="book-author">By ' . esc_html($meta['author']) . '</p>',
+            ), $book_id);
+        }
+
+        // Copyright Page
+        if (!empty($meta['publication_date']) || !empty($meta['author']) || !empty($meta['isbn']) || !empty($meta['publisher']) || !empty($meta['language'])) {
+            $pub_date = !empty($meta['publication_date']) ? strtotime($meta['publication_date']) : false;
+            $content['copyright_page'] = apply_filters('tb_book_copyright_page_rest', array(
+                'html' => '<div class="book-copyright-page">' .
+                    (!empty($meta['author']) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($meta['author']) . '</p>' : '') .
+                    (!empty($meta['isbn']) ? '<p class="book-isbn">ISBN: ' . esc_html($meta['isbn']) . '</p>' : '') .
+                    (!empty($meta['publisher']) ? '<p class="book-publisher">Published by ' . esc_html($meta['publisher']) . '</p>' : '') .
+                    ($pub_date ? '<p class="book-publication-date">' . date('F j, Y', $pub_date) . '</p>' : '') .
+                    (!empty($meta['language']) ? '<p class="book-language">Language: ' . esc_html($meta['language']) . '</p>' : '') .
+                    '</div>',
+            ), $book_id);
+        }
+
+        // Dedication Page
+        if (!empty($meta['dedication'])) {
+            $content['dedication_page'] = apply_filters('tb_book_dedication_rest', array(
+                'html' => '<p class="book-dedication">' . esc_html($meta['dedication']) . '</p>',
+            ), $book_id);
+        }
+
+        // Table of Contents Page
+        if (!empty($chapter_data)) {
+            $content['table_of_contents_page'] = apply_filters('tb_book_toc_rest', array(
+                'html' => '<h1 class="book-toc-title">Table of Contents</h1><ul class="book-toc-list">' . implode('', array_map(function($chapter) {
+                    return '<li><a href="#chapter-' . $chapter['id'] . '">' . esc_html($chapter['title']) . '</a></li>';
+                }, $chapter_data)) . '</ul>',
+            ), $book_id);
+        }
+
+        // Main Body (always included if chapters exist)
+        if (!empty($chapter_data)) {
+            $content['main_body'] = apply_filters('tb_book_main_body_rest', array(
+                'chapters' => $chapter_data,
+            ), $book_id);
+        }
+
+        // Acknowledgments Page
+        if (!empty($meta['acknowledgments'])) {
+            $content['acknowledgments_page'] = apply_filters('tb_book_acknowledgments_rest', array(
+                'html' => '<h1 class="book-acknowledgments-title">Acknowledgments</h1><p class="book-acknowledgments">' . esc_html($meta['acknowledgments']) . '</p>',
+            ), $book_id);
+        }
+
+        // About Author Page
+        if (!empty($meta['about_author'])) {
+            $content['about_author_page'] = apply_filters('tb_book_about_author_rest', array(
+                'html' => '<h1 class="book-about-author-title">About the Author</h1><p class="book-about-author">' . esc_html($meta['about_author']) . '</p>',
+            ), $book_id);
+        }
+
+        // Description Page
+        if (!empty($meta['description'])) {
+            $content['description_page'] = apply_filters('tb_book_description_rest', array(
+                'html' => '<h1 class="book-description-title">Description</h1><p class="book-description">' . esc_html($meta['description']) . '</p>',
+            ), $book_id);
+        }
+
+        // Structure the book content
         $book_content = array(
             'id' => $book_id,
             'title' => apply_filters('tb_book_title_rest', $book->post_title, $book_id),
@@ -168,41 +256,7 @@ class Total_Book_REST_API {
                 );
             }, $chapter_data), $book_id),
             
-            // Front Matter
-            'content' => array(
-                'cover' => apply_filters('tb_book_cover_rest', array(
-                    'html' => '<img class="book-cover" src="' . $featured_image['url'] . '" alt="' . $book->post_title . '" />',
-                ), $book_id),
-                'title_page' => apply_filters('tb_book_title_page_rest', array(
-                    'html' => '<h1 class="book-title">' . $book->post_title . '</h1><h2 class="book-subtitle">' . $meta['subtitle'] . '</h2>',
-                ), $book_id),
-                'author_page' => apply_filters('tb_book_author_page_rest', array(
-                    'author' => '<p class="book-author">By ' . $meta['author'] . '</p>',
-                ), $book_id),
-                'copyright_page' => apply_filters('tb_book_copyright_page_rest', array(
-                    'html' => '<p class="book-copyright">© ' . date('Y') . ' ' . $meta['author'] . '</p><p class="book-isbn">' . $meta['isbn'] . '</p><p class="book-publisher">' . $meta['publisher'] . '</p><p class="book-publication-date">' . date('F j, Y', strtotime($meta['publication_date'])) . '</p>',
-                ), $book_id),
-                'dedication_page' => apply_filters('tb_book_dedication_rest', array(
-                    'html' => '<p class="book-dedication">' . $meta['dedication'] . '</p>',
-                ), $book_id),
-                'table_of_contents_page' => apply_filters('tb_book_toc_rest', array(
-                    'html' => '<h1 class="book-toc-title">Table of Contents</h1><ul class="book-toc-list">' . implode('', array_map(function($chapter) {
-                        return '<li><a href="#chapter-' . $chapter['id'] . '">' . $chapter['title'] . '</a></li>';
-                    }, $chapter_data)) . '</ul>',
-                ), $book_id),
-                'main_body' => apply_filters('tb_book_main_body_rest', array(
-                    'chapters' => $chapter_data,
-                ), $book_id),
-                'acknowledgments_page' => apply_filters('tb_book_acknowledgments_rest', array(
-                    'html' => '<h1 class="book-acknowledgments-title">Acknowledgments</h1><p class="book-acknowledgments">' . $meta['acknowledgments'] . '</p>',
-                ), $book_id),
-                'about_author_page' => apply_filters('tb_book_about_author_rest', array(
-                    'html' => '<h1 class="book-about-author-title">About the Author</h1><p class="book-about-author">' . $meta['about_author'] . '</p>',
-                ), $book_id),
-                'description_page' => apply_filters('tb_book_description_rest', array(
-                    'html' => '<h1 class="book-description-title">Description</h1><p class="book-description">' . $meta['description'] . '</p>',
-                ), $book_id),
-            ),
+            'content' => $content,
         );
 
         // Allow filtering of the entire book content
