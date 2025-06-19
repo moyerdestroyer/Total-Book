@@ -13,23 +13,20 @@ $content-font-size: 18px;
 @mixin paragraph-styles {
   margin: 8px 0;
   text-align: justify;
-  hyphens: auto;
 }
 
 // Shared Content Styles
 @mixin shared-content-styles {
+  display: flex;
+  flex-direction: column;
   margin: 0 10px;
   line-height: $content-line-height;
   color: $text-color;
   font-size: $content-font-size;
   flex: 1;
   padding: $content-padding;
-  height: calc(var(--content-height) - #{$content-padding * 2});
-  max-width: $content-max-width;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+  width: $content-max-width;
   
   p {
     @include paragraph-styles;
@@ -50,6 +47,7 @@ $content-font-size: 18px;
   }
 
   .book-cover {
+    width: 100%;
     margin: auto;
   }
 
@@ -109,9 +107,7 @@ $content-font-size: 18px;
 
   // Ensure images are loaded and measured
   img {
-    display: block;
     max-width: 100%;
-    height: auto;
   }
 
   // Ensure figures are measured correctly
@@ -127,80 +123,19 @@ $content-font-size: 18px;
 // Book Content Specific Styles
 .book-content {
   @include shared-content-styles;
-  position: relative;
+  height: calc(var(--content-height) - #{$content-padding * 2});
+
 }
 
 // Measurement container
 .book-content-measure {
   @include shared-content-styles;
+  min-height: calc(var(--content-height) - #{$content-padding * 2});
   position: absolute;
-  opacity: 0;
-  pointer-events: none;
+  top: 20px;
+  left: 0;
+  visibility: hidden;
   z-index: -1;
-  width: 100%;
   box-sizing: border-box;
-  height:fit-content;
+  height: fit-content;
 }
-
-// Book Content Wrapper
-.book-content-wrapper {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--content-height);
-  padding: $content-padding;
-  box-sizing: border-box;
-}
-
-// Special section styles
-#cover {
-  text-align: center;
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-}
-
-#title-page {
-  text-align: center;
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 18px;
-    padding: 0 18px;
-    color: inherit;
-    text-transform: uppercase;
-  }
-  h2 {
-    font-size: 1.2rem;
-    font-weight: 300;
-    margin-bottom: 18px;
-    padding: 0 18px;
-    color: inherit;
-    font-style: italic;
-  }
-}
-
-#author-page {
-  text-align: center;
-  p {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 18px;
-    padding: 0 18px;
-    color: inherit;
-  }
-}
-
-#copyright-page {
-  text-align: center;
-  p {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 18px;
-    padding: 0 18px;
-    color: inherit;
-  }
-} 

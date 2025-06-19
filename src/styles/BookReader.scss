@@ -231,11 +231,17 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
     &:hover {
       background: rgba(0, 0, 0, 0.08);
     }
+    
+    .chapter-info {
+      font-style: italic;
+      opacity: 0.8;
+    }
   }
 }
 
 // Book Content Wrapper and Measurement
 .book-content-wrapper {
+  height: var(--content-height);
   position: relative;
   flex: 1;
   display: flex;

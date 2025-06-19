@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/BookReader.scss';
 import { loadBook, BookContent } from './loadBook';
-import BookContentSections from './BookContentSections';
+import BookContentSections, { BookContentSectionsRef } from './BookContentSections';
 
 interface BookReaderProps {
   bookId: string;
@@ -28,7 +28,15 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
   const [showTOC, setShowTOC] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [chapterBoundaries, setChapterBoundaries] = useState<Array<{
+    id: number;
+    title: string;
+    startPage: number;
+    endPage: number;
+    pageCount: number;
+  }>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentSectionsRef = useRef<BookContentSectionsRef>(null);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -67,6 +75,12 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
   const handlePageChange = (page: number, total: number) => {
     setCurrentPage(page);
     setTotalPages(total);
+    
+    // Update chapter boundaries when pages change
+    if (contentSectionsRef.current) {
+      const boundaries = contentSectionsRef.current.getChapterBoundaries();
+      setChapterBoundaries(boundaries);
+    }
   };
 
   const goToNextPage = () => {
@@ -78,6 +92,35 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
   const goToPreviousPage = () => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Helper function to get current chapter info
+  const getCurrentChapter = () => {
+    if (chapterBoundaries.length === 0) return null;
+    
+    return chapterBoundaries.find(chapter => 
+      currentPage + 1 >= chapter.startPage && currentPage + 1 <= chapter.endPage
+    );
+  };
+
+  // Helper function to get the last page of a specific chapter
+  const getChapterLastPage = (chapterId: number) => {
+    const chapter = chapterBoundaries.find(ch => ch.id === chapterId);
+    return chapter ? chapter.endPage : null;
+  };
+
+  // Helper function to get the first page of a specific chapter
+  const getChapterFirstPage = (chapterId: number) => {
+    const chapter = chapterBoundaries.find(ch => ch.id === chapterId);
+    return chapter ? chapter.startPage : null;
+  };
+
+  // Helper function to go to a specific chapter
+  const goToChapter = (chapterId: number) => {
+    const firstPage = getChapterFirstPage(chapterId);
+    if (firstPage !== null) {
+      setCurrentPage(firstPage - 1); // Convert to 0-based index
     }
   };
 
@@ -115,6 +158,7 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
   }
 
   const coverUrl = bookData.image_url?.url || TOC_PLACEHOLDER;
+  const currentChapter = getCurrentChapter();
 
   return (
     <div
@@ -137,7 +181,13 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
             {/* Main Body */}
             {bookData.content.main_body.chapters.map((chapter) => (
               <li key={chapter.id}>
-                <button>{chapter.title}</button>
+                <button onClick={() => goToChapter(chapter.id)}>
+                  {chapter.title}
+                  {(() => {
+                    const chapterInfo = chapterBoundaries.find(ch => ch.id === chapter.id);
+                    return chapterInfo ? ` (${chapterInfo.startPage}-${chapterInfo.endPage})` : '';
+                  })()}
+                </button>
               </li>
             ))}
           </ul>
@@ -154,9 +204,15 @@ const BookReader: React.FC<BookReaderProps> = ({ bookId }) => {
         </h2>
         <div className="page-info">
           {currentPage + 1} / {totalPages}
+          {currentChapter && (
+            <span className="chapter-info">
+              {' '}• {currentChapter.title}
+            </span>
+          )}
         </div>
       </div>
       <BookContentSections 
+        ref={contentSectionsRef}
         bookData={bookData} 
         currentPage={currentPage}
         onPageChange={handlePageChange}

@@ -9,6 +9,7 @@ Class TB_Book {
 		add_action('wp_ajax_add_chapter', array($this, 'ajax_add_chapter'));
 		add_action('wp_ajax_delete_chapter', array($this, 'ajax_delete_chapter'));
 		add_action('wp_ajax_update_chapter_order', array($this, 'ajax_update_chapter_order'));
+		add_action('admin_notices', array($this, 'display_admin_notices'));
 	}
 
 	public function register_post_type() {
@@ -121,8 +122,8 @@ Class TB_Book {
 				<input type="text" id="book_subtitle" name="book_subtitle" value="<?php echo esc_attr($subtitle); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_author"><?php _e('Author', 'total-book'); ?></label>
-				<input type="text" id="book_author" name="book_author" value="<?php echo esc_attr($author); ?>" class="widefat">
+				<label for="book_author"><?php _e('Author', 'total-book'); ?> <span style="color: red;">*</span></label>
+				<input type="text" id="book_author" name="book_author" value="<?php echo esc_attr($author); ?>" class="widefat" required>
 			</p>
 			<p>
 				<label for="book_isbn"><?php _e('ISBN', 'total-book'); ?></label>
@@ -153,6 +154,34 @@ Class TB_Book {
 				<textarea id="book_about_author" name="book_about_author" class="widefat" rows="5"><?php echo esc_textarea($about_author); ?></textarea>
 			</p>
 		</div>
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			// Validate author field before form submission
+			$('#post').on('submit', function(e) {
+				var authorField = $('#book_author');
+				var authorValue = authorField.val().trim();
+				
+				if (!authorValue) {
+					e.preventDefault();
+					alert('<?php echo esc_js(__('Author field is required. Please enter an author name.', 'total-book')); ?>');
+					authorField.focus();
+					return false;
+				}
+			});
+			
+			// Add visual indication when author field is empty
+			$('#book_author').on('blur', function() {
+				var $this = $(this);
+				var value = $this.val().trim();
+				
+				if (!value) {
+					$this.css('border-color', '#dc3232');
+				} else {
+					$this.css('border-color', '');
+				}
+			});
+		});
+		</script>
 		<?php
 	}
 
@@ -222,6 +251,19 @@ Class TB_Book {
 			return;
 		}
 
+		// Validate required fields
+		if (isset($_POST['book_author']) && empty(trim($_POST['book_author']))) {
+			// Set an error message
+			set_transient('book_author_error_' . $post_id, __('Author field is required. Please enter an author name.', 'total-book'), 45);
+			
+			// Prevent the post from being saved
+			wp_die(
+				__('Author field is required. Please enter an author name.', 'total-book'),
+				__('Validation Error', 'total-book'),
+				array('back_link' => true)
+			);
+		}
+
 		// Sanitize and save the data
 		$fields = array(
 			'book_author' => 'sanitize_text_field',
@@ -253,6 +295,24 @@ Class TB_Book {
 					));
 				}
 			}
+		}
+	}
+
+	public function display_admin_notices() {
+		global $post;
+		
+		if (!$post || $post->post_type !== 'book') {
+			return;
+		}
+		
+		$error_message = get_transient('book_author_error_' . $post->ID);
+		if ($error_message) {
+			delete_transient('book_author_error_' . $post->ID);
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php echo esc_html($error_message); ?></p>
+			</div>
+			<?php
 		}
 	}
 
