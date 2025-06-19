@@ -1,0 +1,680 @@
+// Variables
+$primary-color: #3498db;
+$primary-hover: #2980b9;
+$text-color: #2c3e50;
+$text-light: #666;
+$border-color: #ddd;
+$error-color: #e74c3c;
+$error-bg: #fdf2f2;
+$dark-bg: #2c3e50;
+$dark-border: #34495e;
+$dark-text: #ecf0f1;
+$dark-text-light: #bdc3c7;
+$paper-bg: #fafafa;
+$paper-shadow: rgba(0, 0, 0, 0.1);
+
+// Import content styles
+@import './BookContent.scss';
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin button-base {
+  padding: 8px 16px;
+  background: $primary-color;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: $primary-hover;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+// Main Container
+.book-reader-container {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  background: $paper-bg;
+  min-height: 100vh;
+  height: 100vh;
+  font-family: 'Merriweather', Georgia, serif;
+  box-shadow: 0 4px 12px $paper-shadow;
+  position: relative;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  
+  // Define CSS custom properties for height calculations
+  // Header: 40px margin-bottom + 20px padding-bottom + 2rem font-size + line-height
+  --header-height: calc(40px + 20px + 2rem + 1.3rem);
+  --container-padding: 80px; // 40px top + 40px bottom
+  --content-height: calc(100vh - var(--header-height) - var(--container-padding));
+  
+  // When admin bar is present
+  body.admin-bar & {
+    min-height: calc(100vh - 32px);
+    height: calc(100vh - 32px);
+    --content-height: calc(100vh - 32px - var(--header-height) - var(--container-padding));
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 20px 100%;
+    pointer-events: none;
+  }
+
+  &.theme-light {
+    background: $paper-bg;
+    color: $text-color;
+    
+    .book-header h2 {
+      color: $text-color;
+    }
+    .book-content {
+      color: $text-color;
+    }
+    .book-controls {
+      border-top-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+  &.theme-dark {
+    background: #1a1a1a;
+    color: $dark-text;
+    
+    &::before {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    }
+    .book-header h2 {
+      color: $dark-text;
+    }
+    .book-content {
+      color: $dark-text-light;
+    }
+    .book-controls {
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+// Loading States
+.loading-spinner {
+  @include flex-column;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 400px;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.book-reader-loading {
+  @include flex-center;
+  height: 200px;
+  color: $text-light;
+  font-style: italic;
+}
+
+// Error States
+.error-message {
+  text-align: center;
+  color: $error-color;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.book-reader-error {
+  @include flex-center;
+  height: 200px;
+  color: $error-color;
+  border: 1px solid $error-color;
+  border-radius: 4px;
+  background: $error-bg;
+  margin: 20px 0;
+}
+
+// Book Header
+.book-header {
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+
+  h2 {
+    margin: 0 0 12px 0;
+    color: $text-color;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    cursor: pointer;
+    display: inline-block;
+    transition: color 0.15s, text-decoration 0.15s, background 0.15s;
+    text-decoration: none;
+    &:hover, &:focus {
+      color: $primary-color;
+      text-decoration: underline;
+      background: rgba(52, 152, 219, 0.04);
+      outline: none;
+    }
+  }
+
+  p {
+    margin: 0;
+    color: $text-light;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .page-info {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    font-size: 0.9rem;
+    color: $text-light;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+  }
+}
+
+// Book Content Wrapper and Measurement
+.book-content-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+// Book Controls
+.book-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 40px;
+  gap: 20px;
+
+  button {
+    @include button-base;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  span {
+    color: $text-light;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .book-reader-container {
+    padding: 20px;
+    margin: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    height: 100vh;
+
+    // When admin bar is present on mobile
+    body.admin-bar & {
+      min-height: calc(100vh - 46px);
+      height: calc(100vh - 46px);
+    }
+  }
+
+  .book-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .book-content {
+    font-size: 16px;
+    padding: 0 10px;
+  }
+
+  .book-controls {
+    flex-direction: column;
+    gap: 15px;
+
+    button {
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .book-reader-container {
+    background: #1a1a1a;
+    color: $dark-text;
+    
+    &::before {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    }
+  }
+
+  .book-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+
+    h2 {
+      color: $dark-text;
+    }
+  }
+
+  .book-content {
+    color: $dark-text-light;
+  }
+
+  .book-controls {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .settings-panel {
+    background: #23272f;
+    color: #f4f4f4;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.38);
+    
+    .setting-group button {
+      background: #23272f;
+      color: #f4f4f4;
+      border: 1px solid #444;
+      &.active {
+        background: $primary-color;
+        color: #fff;
+        border-color: $primary-color;
+      }
+    }
+    
+    .close-settings {
+      background: $primary-color;
+      color: #fff;
+      &:hover {
+        background: $primary-hover;
+      }
+    }
+  }
+  
+  .toc-panel-inside {
+    background: #23272f;
+    color: #f4f4f4;
+    box-shadow: 2px 0 16px rgba(0,0,0,0.28);
+    
+    .toc-title {
+      color: #f4f4f4;
+    }
+    
+    .toc-list li button {
+      background: none;
+      color: #f4f4f4;
+      &:hover {
+        background: #23272f;
+        color: $primary-color;
+      }
+    }
+    
+    .toc-list li.active button {
+      background: $primary-color;
+      color: #fff;
+    }
+  }
+  
+  .nav-arrow {
+    background: rgba(255, 255, 255, 0.2);
+    
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+.settings-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.settings-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.settings-panel {
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 32px 24px 24px 24px;
+  min-width: 260px;
+  max-width: 90vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fadeIn 0.2s;
+  h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .setting-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    label {
+      min-width: 70px;
+      font-weight: 500;
+    }
+    button {
+      @include button-base;
+      min-width: 36px;
+      padding: 6px 12px;
+      font-size: 1rem;
+      background: #f4f4f4;
+      color: #222;
+      border: 1px solid #ccc;
+      &.active {
+        background: $primary-color;
+        color: #fff;
+        border-color: $primary-color;
+      }
+    }
+  }
+  .close-settings {
+    margin-top: 10px;
+    align-self: flex-end;
+    background: $primary-color;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 18px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover {
+      background: $primary-hover;
+    }
+  }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// TOC Button
+.toc-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  cursor: pointer;
+  z-index: 20;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  &:hover, &.open {
+    opacity: 1;
+  }
+}
+
+// TOC Panel (inside container)
+.toc-panel-inside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 90vw;
+  height: 100%;
+  background: #fff;
+  color: #222;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 24px 0;
+  z-index: 19;
+  animation: slideInLeft 0.2s;
+  border-radius: 8px 0 0 8px;
+  .toc-cover {
+    width: 100%;
+    padding: 32px 0 12px 0;
+    display: flex;
+    justify-content: center;
+    img {
+      width: 120px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      background: #eee;
+    }
+  }
+  .toc-title {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    padding: 0 18px;
+    color: inherit;
+  }
+  .toc-list {
+    list-style: none;
+    padding: 0 0 0 0;
+    margin: 0 0 18px 0;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    li {
+      &.active button {
+        background: $primary-color;
+        color: #fff;
+      }
+      button {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 12px 24px;
+        font-size: 1rem;
+        color: inherit;
+        cursor: pointer;
+        border-radius: 0;
+        transition: background 0.15s;
+        &:hover {
+          background: #f0f4fa;
+        }
+      }
+    }
+  }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+// Navigation Controls
+.navigation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+
+  button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 64px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    opacity: 0.7;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+    &:hover:not(:disabled) {
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 1;
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    &.prev {
+      left: 8px;
+    }
+
+    &.next {
+      right: 8px;
+    }
+  }
+
+  .page-info {
+    position: absolute;
+    bottom: 20px;
+    font-size: 0.85rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    
+    &.current-page {
+      left: 20px;
+    }
+    
+    &.total-pages {
+      right: 20px;
+    }
+    
+    &:hover {
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+// Dark mode support for navigation
+.theme-dark {
+  .navigation {
+    button {
+      background: rgba(255, 255, 255, 0.2);
+      
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .page-info {
+      color: rgba(255, 255, 255, 0.4);
+      
+      &:hover {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+}
+
+// Dark mode support for page info
+.theme-dark {
+  .book-header {
+    .page-info {
+      color: $dark-text-light;
+      background: rgba(255, 255, 255, 0.08);
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+    }
+  }
+}

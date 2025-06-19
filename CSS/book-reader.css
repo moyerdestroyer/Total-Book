@@ -1,0 +1,20 @@
+.book-reader-container {
+  background-color: #ffffff;
+  color: #333333;
+}
+
+.error-message {
+  padding: 20px;
+  color: #dc3545;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.loading-message {
+  padding: 20px;
+  color: #666666;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+/* Add any additional custom styles here */ 

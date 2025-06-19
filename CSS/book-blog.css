@@ -1,0 +1,105 @@
+/* Chapter Navigation */
+.chapter-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.chapter-navigation a {
+    text-decoration: none;
+    color: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.chapter-navigation a:hover {
+    background-color: #e9ecef;
+}
+
+.chapter-navigation .nav-prev,
+.chapter-navigation .nav-next {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chapter-navigation .nav-toc {
+    font-weight: 500;
+}
+
+/* Table of Contents */
+.book-toc {
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.book-toc h2 {
+    margin: 0 0 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.chapter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.chapter-item a {
+    display: block;
+    padding: 1rem;
+    text-decoration: none;
+    color: #333;
+    background: #f8f9fa;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.chapter-item a:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+/* Book Meta */
+.book-meta {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.book-meta > div {
+    margin-bottom: 0.5rem;
+}
+
+.book-meta strong {
+    color: #666;
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chapter-navigation {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .chapter-navigation a {
+        width: 100%;
+    }
+    
+    .chapter-list {
+        grid-template-columns: 1fr;
+    }
+} 

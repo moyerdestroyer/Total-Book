@@ -1,0 +1,35 @@
+{
+  "name": "total_book",
+  "version": "1.0.0",
+  "description": "*A WordPress plugin for the putting your book on the web*",
+  "main": "webpack.widget.js",
+  "scripts": {
+    "dev": "webpack --config webpack.widget.js --watch",
+    "build": "webpack --config webpack.widget.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "css-loader": "^7.1.2",
+    "mini-css-extract-plugin": "^2.9.2",
+    "postcss-loader": "^8.1.1",
+    "sass": "^1.89.2",
+    "sass-loader": "^16.0.5",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.17.18",
+    "lodash": "^4.17.21",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

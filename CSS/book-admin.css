@@ -1,0 +1,101 @@
+.book-meta-fields {
+    padding: 12px;
+}
+
+.book-meta-fields p {
+    margin: 1em 0;
+}
+
+.book-meta-fields label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.book-meta-fields input[type="text"],
+.book-meta-fields input[type="date"],
+.book-meta-fields textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.book-meta-fields textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.book-meta-fields input[type="text"]:focus,
+.book-meta-fields input[type="date"]:focus,
+.book-meta-fields textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+/* Chapter Management Styles */
+.book-chapters-container {
+    padding: 12px;
+}
+
+.chapters-list {
+    margin-bottom: 20px;
+}
+
+.chapters-sortable {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.chapter-item:hover {
+    background: #f9f9f9;
+}
+
+.chapter-item .dashicons-menu {
+    cursor: move;
+    color: #999;
+    margin-right: 10px;
+}
+
+.chapter-item a {
+    flex-grow: 1;
+    text-decoration: none;
+    color: #2271b1;
+}
+
+.chapter-actions {
+    margin-left: 10px;
+}
+
+.chapter-actions .button {
+    margin-left: 5px;
+}
+
+.add-chapter-form {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-chapter-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.no-chapters {
+    color: #666;
+    font-style: italic;
+} 

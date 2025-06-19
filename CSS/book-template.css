@@ -1,0 +1,255 @@
+.total-book {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2em;
+}
+
+.book-header {
+    margin-bottom: 2em;
+    text-align: center;
+}
+
+.book-title {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+}
+
+.book-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1em;
+    margin: 1em 0;
+    padding: 1em;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.book-meta > div {
+    padding: 0.5em;
+}
+
+.book-meta strong {
+    display: block;
+    color: #666;
+    margin-bottom: 0.25em;
+}
+
+.book-description {
+    margin: 2em 0;
+    line-height: 1.6;
+}
+
+.book-toc {
+    margin: 2em 0;
+    padding: 1em;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.book-toc h2 {
+    margin-top: 0;
+    margin-bottom: 1em;
+    font-size: 1.5em;
+}
+
+.chapter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chapter-item {
+    margin: 0.5em 0;
+}
+
+.chapter-item a {
+    display: block;
+    padding: 0.5em;
+    color: #2271b1;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.chapter-item a:hover {
+    background-color: #f0f0f0;
+}
+
+.book-chapters {
+    margin-top: 3em;
+}
+
+.chapter-content {
+    margin-bottom: 3em;
+    padding-bottom: 2em;
+    border-bottom: 1px solid #eee;
+}
+
+.chapter-content:last-child {
+    border-bottom: none;
+}
+
+.chapter-content h2 {
+    font-size: 1.8em;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid #2271b1;
+}
+
+@media (max-width: 600px) {
+    .total-book {
+        padding: 1em;
+    }
+
+    .book-title {
+        font-size: 2em;
+    }
+
+    .book-meta {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Modern Template Styles */
+.total-book.modern-template {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.total-book.modern-template .book-navigation {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 2rem;
+}
+
+.total-book.modern-template .book-navigation.bottom {
+    border-bottom: none;
+    border-top: 1px solid #eee;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+.total-book.modern-template .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.total-book.modern-template .nav-prev,
+.total-book.modern-template .nav-next,
+.total-book.modern-template .nav-toc {
+    text-decoration: none;
+    color: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.total-book.modern-template .nav-prev:hover,
+.total-book.modern-template .nav-next:hover,
+.total-book.modern-template .nav-toc:hover {
+    background-color: #f5f5f5;
+}
+
+.total-book.modern-template .nav-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.total-book.modern-template .nav-title {
+    font-weight: 500;
+}
+
+.total-book.modern-template .book-content {
+    line-height: 1.6;
+}
+
+/* TOC Template Styles */
+.total-book.toc-template {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.total-book.toc-template .chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.total-book.toc-template .chapter-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.total-book.toc-template .chapter-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.total-book.toc-template .chapter-link {
+    display: block;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.total-book.toc-template .chapter-title {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.total-book.toc-template .chapter-excerpt {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.total-book.toc-template .no-chapters {
+    text-align: center;
+    padding: 3rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+}
+
+/* Common Styles */
+.total-book .book-header {
+    margin-bottom: 2rem;
+}
+
+.total-book .book-title {
+    margin: 0 0 1rem;
+    font-size: 2.5rem;
+    line-height: 1.2;
+}
+
+.total-book .book-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.total-book .book-meta > div {
+    font-size: 0.9rem;
+}
+
+.total-book .book-meta strong {
+    display: block;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.total-book .book-description {
+    margin-bottom: 2rem;
+    line-height: 1.6;
+} 
