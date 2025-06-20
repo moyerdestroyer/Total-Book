@@ -22,7 +22,7 @@ $content-font-size: 18px;
   margin: 0 10px;
   line-height: $content-line-height;
   color: $text-color;
-  font-size: $content-font-size;
+  font-size: inherit;
   flex: 1;
   padding: $content-padding;
   box-sizing: border-box;
@@ -124,7 +124,6 @@ $content-font-size: 18px;
 .book-content {
   @include shared-content-styles;
   height: calc(var(--content-height) - #{$content-padding * 2});
-
 }
 
 // Measurement container

@@ -6,7 +6,14 @@ import { paginateEbookWithMetadata, SectionMetadata } from '../utils/EReaderPagi
 interface BookContentSectionsProps {
   bookData: BookContent;
   currentPage: number;
-  onPageChange: (page: number, total: number) => void;
+  fontSize: 'small' | 'medium' | 'large';
+  onPageChange: (page: number, total: number, chapterBoundaries: Array<{
+    id: number;
+    title: string;
+    startPage: number;
+    endPage: number;
+    pageCount: number;
+  }>) => void;
 }
 
 export interface BookContentSectionsRef {
@@ -23,6 +30,7 @@ export interface BookContentSectionsRef {
 const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectionsProps>(({ 
   bookData, 
   currentPage,
+  fontSize,
   onPageChange 
 }, ref) => {
   const [pages, setPages] = useState<string[]>([]); // Array of HTML strings for each page
@@ -144,7 +152,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
       console.warn('BookContentSections: No content sections available');
       setPages(['<div class="no-content"><p>No content available for this book.</p></div>']);
       setSections([]);
-      onPageChange(1, 1);
+      onPageChange(1, 1, []);
       return;
     }
 
@@ -172,7 +180,16 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
       pageCount: section.pageCount
     })));
     
-    onPageChange(currentPage, paginationResult.pages.length);
+    const chapterSections = paginationResult.sections.filter(section => section.type === 'chapter');
+    const chapterBoundaries = chapterSections.map(chapter => ({
+      id: chapter.id!,
+      title: chapter.title!,
+      startPage: chapter.startPage + 1, // Convert to 1-based
+      endPage: chapter.endPage + 1,
+      pageCount: chapter.pageCount
+    }));
+    
+    onPageChange(currentPage, paginationResult.pages.length, chapterBoundaries);
   }, [bookData, hiddenRef, currentPage, onPageChange, pageHeight]);
 
   // Debounced pagination for resize events
@@ -186,7 +203,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
       window.removeEventListener('resize', debouncedPaginate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookData, pageHeight]);
+  }, [bookData, pageHeight, fontSize]);
 
   return (
     <div className="e-reader">

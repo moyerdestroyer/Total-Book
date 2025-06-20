@@ -370,6 +370,24 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
       color: #f4f4f4;
     }
     
+    .current-chapter-section {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+      
+      .current-chapter-info {
+        .section-type {
+          color: $primary-color;
+        }
+        
+        .chapter-progress {
+          color: $dark-text-light;
+        }
+        
+        .progress-bar {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+    
     .toc-list li button {
       background: none;
       color: #f4f4f4;
@@ -542,6 +560,65 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
     padding: 0 18px;
     color: inherit;
   }
+  
+  // Current Chapter Section
+  .current-chapter-section {
+    padding: 0 18px 18px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 18px;
+    
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: $primary-color;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .current-chapter-info {
+      .section-type {
+        font-size: 0.75rem;
+        color: $primary-color;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      .chapter-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: inherit;
+        line-height: 1.3;
+      }
+      
+      .chapter-progress {
+        font-size: 0.8rem;
+        color: $text-light;
+        margin-bottom: 12px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        
+        .progress-fill {
+          height: 100%;
+          background: $primary-color;
+          border-radius: 2px;
+          transition: width 0.3s ease;
+        }
+      }
+    }
+  }
+  
   .toc-list {
     list-style: none;
     padding: 0 0 0 0;
@@ -553,6 +630,11 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
       &.active button {
         background: $primary-color;
         color: #fff;
+        
+        .page-range {
+          color: #fff;
+          opacity: 0.8;
+        }
       }
       button {
         width: 100%;
@@ -565,6 +647,24 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
         cursor: pointer;
         border-radius: 0;
         transition: background 0.15s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .chapter-title {
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .page-range {
+          font-size: 0.85rem;
+          color: $text-light;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          margin-left: 12px;
+        }
+        
         &:hover {
           background: #f0f4fa;
         }
