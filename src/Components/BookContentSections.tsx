@@ -1,7 +1,15 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { BookContent } from './loadBook';
-import debounce from 'lodash/debounce';
 import { paginateEbookWithMetadata, SectionMetadata } from '../utils/EReaderPaginator';
+
+// Custom debounce implementation (no external dependencies)
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(null, args), wait);
+  }) as T;
+}
 
 interface BookContentSectionsProps {
   bookData: BookContent;
@@ -202,7 +210,6 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
     return () => {
       window.removeEventListener('resize', debouncedPaginate);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookData, pageHeight, fontSize]);
 
   return (

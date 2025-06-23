@@ -14,7 +14,7 @@ $paper-bg: #fafafa;
 $paper-shadow: rgba(0, 0, 0, 0.1);
 
 // Import content styles
-@import './BookContent.scss';
+@use './BookContent.scss';
 
 // Mixins
 @mixin flex-center {

@@ -16,20 +16,17 @@
     "@types/react-dom": "^19.1.6",
     "css-loader": "^7.1.2",
     "mini-css-extract-plugin": "^2.9.2",
-    "postcss-loader": "^8.1.1",
     "sass": "^1.89.2",
     "sass-loader": "^16.0.5",
-    "style-loader": "^4.0.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@types/lodash": "^4.17.18",
-    "lodash": "^4.17.21",
-    "next": "^15.3.3",
+    "postcss-loader": "^8.1.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "scheduler": "^0.26.0"
   }
 }

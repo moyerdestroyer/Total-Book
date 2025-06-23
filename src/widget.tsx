@@ -6,9 +6,9 @@ import BookReader from './components/BookReader';
 function initializeBookReaders() {
   const containers = document.querySelectorAll('#book-reader');
   
-  containers.forEach((container: HTMLElement) => {
+  containers.forEach((container: Element) => {
     // Prevent double initialization
-    if (container.dataset.initialized === 'true') return;
+    if ((container as HTMLElement).dataset.initialized === 'true') return;
     
     const bookId = container.getAttribute('data-book-id');
     if (!bookId) {
@@ -17,17 +17,17 @@ function initializeBookReaders() {
     }
     
     // Add loading state
-    container.innerHTML = '<div class="book-reader-loading">Loading book reader...</div>';
+    (container as HTMLElement).innerHTML = '<div class="book-reader-loading">Loading book reader...</div>';
     
     try {
-      const root = createRoot(container);
+      const root = createRoot(container as HTMLElement);
       root.render(<BookReader bookId={bookId} />);
       
       // Mark as initialized
-      container.dataset.initialized = 'true';
+      (container as HTMLElement).dataset.initialized = 'true';
     } catch (error) {
       console.error('BookReader initialization failed:', error);
-      container.innerHTML = '<div class="book-reader-error">Failed to load book reader</div>';
+      (container as HTMLElement).innerHTML = '<div class="book-reader-error">Failed to load book reader</div>';
     }
   });
 }
@@ -60,3 +60,6 @@ observer.observe(document.body, { childList: true, subtree: true });
   init: initializeBookReaders,
   version: '1.0.0'
 };
+
+// Export for UMD library
+export default initializeBookReaders;
