@@ -273,42 +273,6 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
-  .book-reader-container {
-    padding: 20px;
-    margin: 0;
-    border-radius: 0;
-    min-height: 100vh;
-    height: 100vh;
-
-    // When admin bar is present on mobile
-    body.admin-bar & {
-      min-height: calc(100vh - 46px);
-      height: calc(100vh - 46px);
-    }
-  }
-
-  .book-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .book-content {
-    font-size: 16px;
-    padding: 0 10px;
-  }
-
-  .book-controls {
-    flex-direction: column;
-    gap: 15px;
-
-    button {
-      width: 100%;
-      max-width: 200px;
-    }
-  }
-}
-
 // Dark Mode Support
 @media (prefers-color-scheme: dark) {
   .book-reader-container {
@@ -780,6 +744,69 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
       
       &:hover {
         background: rgba(255, 255, 255, 0.12);
+      }
+    }
+  }
+}
+
+
+// Responsive Design
+@media (max-width: 768px) {
+  .book-reader-container {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .book-header {
+    max-width: 70vw;
+    place-self: center;
+    position: initial;
+  }
+
+  .book-header h2 {
+    font-size: 1.25rem;
+  }
+  .book-header > .page-info {
+    top: 80px;
+  }
+
+  .book-controls {
+    flex-direction: column;
+    gap: 15px;
+
+    button {
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+
+  // Mobile navigation adjustments
+  .navigation {
+    button {
+      width: 32px;
+      height: 48px;
+      font-size: 20px;
+      border-radius: 16px;
+      
+      &.prev {
+        left: 4px;
+      }
+      
+      &.next {
+        right: 4px;
+      }
+    }
+    
+    .page-info {
+      font-size: 0.75rem;
+      bottom: 12px;
+      
+      &.current-page {
+        left: 8px;
+      }
+      
+      &.total-pages {
+        right: 8px;
       }
     }
   }

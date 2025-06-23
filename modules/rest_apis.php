@@ -185,11 +185,14 @@ class Total_Book_REST_API {
         }
 
         // Copyright Page
+        $settings = get_option('total_book_settings', array());
+        $disable_auto_copyright = isset($settings['disable_auto_copyright']) ? $settings['disable_auto_copyright'] : false;
+        
         if (!empty($meta['publication_date']) || !empty($meta['author']) || !empty($meta['isbn']) || !empty($meta['publisher']) || !empty($meta['language'])) {
             $pub_date = !empty($meta['publication_date']) ? strtotime($meta['publication_date']) : false;
             $content['copyright_page'] = apply_filters('tb_book_copyright_page_rest', array(
                 'html' => '<div class="book-copyright-page">' .
-                    (!empty($meta['author']) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($meta['author']) . '</p>' : '') .
+                    (!$disable_auto_copyright && !empty($meta['author']) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($meta['author']) . '</p>' : '') .
                     (!empty($meta['isbn']) ? '<p class="book-isbn">ISBN: ' . esc_html($meta['isbn']) . '</p>' : '') .
                     (!empty($meta['publisher']) ? '<p class="book-publisher">Published by ' . esc_html($meta['publisher']) . '</p>' : '') .
                     ($pub_date ? '<p class="book-publication-date">' . date('F j, Y', $pub_date) . '</p>' : '') .

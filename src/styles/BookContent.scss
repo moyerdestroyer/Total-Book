@@ -9,6 +9,9 @@ $content-padding: 20px;
 $content-line-height: 1.5;
 $content-font-size: 18px;
 
+// Mobile breakpoint
+$mobile-breakpoint: 768px;
+
 // Shared Paragraph Styles
 @mixin paragraph-styles {
   margin: 8px 0;
@@ -27,6 +30,11 @@ $content-font-size: 18px;
   padding: $content-padding;
   box-sizing: border-box;
   width: $content-max-width;
+
+  div {
+    padding: 0;
+    margin: 0;
+  }
   
   p {
     @include paragraph-styles;
@@ -113,8 +121,45 @@ $content-font-size: 18px;
   // Ensure figures are measured correctly
   figure {
     margin: 1em 0;
+    max-height: 70vh;
     img {
-      width: 100%;
+      padding:0;
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
+
+  // Mobile styles
+  @media (max-width: $mobile-breakpoint) {
+    width:100%!important;
+    margin: 0;
+    padding: 0;
+    
+    .book-title {
+      font-size: 2rem;
+    }
+    
+    .book-subtitle {
+      font-size: 1.5rem;
+    }
+    
+    .book-author {
+      font-size: 2rem;
+    }
+    
+    .book-chapter-title {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+    }
+    
+    .book-toc-list {
+      li {
+        margin-bottom: 10px;
+      }
+
+      figure {
+        max-height: 60vh;
+      }
     }
   }
   

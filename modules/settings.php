@@ -13,7 +13,8 @@ Class TB_Settings {
         $this->options = get_option($this->option_name, array(
             'template' => 'default',
             'show_meta' => true,
-            'show_toc' => true
+            'show_toc' => true,
+            'disable_auto_copyright' => false
         ));
     }
 
@@ -101,6 +102,7 @@ Class TB_Settings {
     public function render_display_options() {
         $show_meta = isset($this->options['show_meta']) ? $this->options['show_meta'] : true;
         $show_toc = isset($this->options['show_toc']) ? $this->options['show_toc'] : true;
+        $disable_auto_copyright = isset($this->options['disable_auto_copyright']) ? $this->options['disable_auto_copyright'] : false;
         ?>
         <fieldset>
             <label>
@@ -111,6 +113,11 @@ Class TB_Settings {
             <label>
                 <input type="checkbox" name="<?php echo $this->option_name; ?>[show_toc]" value="1" <?php checked($show_toc); ?>>
                 <?php _e('Show table of contents', 'total-book'); ?>
+            </label>
+            <br>
+            <label>
+                <input type="checkbox" name="<?php echo $this->option_name; ?>[disable_auto_copyright]" value="1" <?php checked($disable_auto_copyright); ?>>
+                <?php _e('Disable automatic copyright notice (keep other metadata)', 'total-book'); ?>
             </label>
         </fieldset>
         <?php
@@ -126,6 +133,7 @@ Class TB_Settings {
         // Sanitize checkboxes
         $sanitized['show_meta'] = isset($input['show_meta']) ? (bool) $input['show_meta'] : false;
         $sanitized['show_toc'] = isset($input['show_toc']) ? (bool) $input['show_toc'] : false;
+        $sanitized['disable_auto_copyright'] = isset($input['disable_auto_copyright']) ? (bool) $input['disable_auto_copyright'] : false;
         
         return $sanitized;
     }

@@ -6,14 +6,6 @@ export class EReaderPaginator {
   constructor(pageHeight: number, container: HTMLElement) {
     this.pageHeight = pageHeight;
     this.container = container;
-    
-    // Log container setup
-    console.error('[Paginator] Container initialization:', {
-      containerWidth: this.container.offsetWidth,
-      containerStyle: window.getComputedStyle(this.container),
-      containerBox: this.container.getBoundingClientRect(),
-      pageHeight: this.pageHeight
-    });
   }
 
   // Paginate a single section of HTML
@@ -55,16 +47,6 @@ export class EReaderPaginator {
           // Remove the last node that caused overflow
           this.container.removeChild(this.container.lastChild!);
           currentPageContent.pop();
-          
-          console.error('[Paginator] Overflow detected:', {
-            currentHeight: this.container.offsetHeight,
-            targetHeight: this.pageHeight,
-            nodeType: currentNode.nodeName,
-            nodeIndex: i,
-            totalNodes: nodes.length,
-            isLastNode: i === nodes.length - 1,
-            nodeContent: currentNode.textContent?.substring(0, 50) + '...'
-          });
 
           // Try to split the last node if it's a paragraph
           if (currentNode.nodeType === Node.ELEMENT_NODE && 
@@ -118,11 +100,18 @@ export class EReaderPaginator {
       } else {
         // Fallback: if no content fits, create a minimal page
         console.warn('[Paginator] No content fits on page, creating minimal page');
+        console.log('currentPageContent', currentPageContent);
         pages.push('<div class="page-break"></div>');
       }
       
       // Move to the next set of nodes
-      nodeIndex = lastGoodIndex;
+      // SAFEGUARD: Always advance nodeIndex to avoid infinite loops
+      if (lastGoodIndex === nodeIndex) {
+        console.warn('[Paginator] Infinite loop safeguard triggered: advancing nodeIndex');
+        nodeIndex++;
+      } else {
+        nodeIndex = lastGoodIndex;
+      }
       
       console.log(`[Paginator] Moving to next page, new nodeIndex: ${nodeIndex}`);
     }
