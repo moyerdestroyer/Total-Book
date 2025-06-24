@@ -16,10 +16,12 @@ export class EReaderPaginator {
     tempDiv.innerHTML = html;
     const nodes = Array.from(tempDiv.childNodes);
     let nodeIndex = 0;
+    let lastProcessedNode: Node | null = null;
 
     console.log(`[Paginator] Starting pagination of section with ${nodes.length} nodes`);
 
     while (nodeIndex < nodes.length) {
+      // Clear container for this page iteration
       this.container.innerHTML = '';
       let lastGoodIndex = nodeIndex;
       let currentPageContent: Node[] = [];
@@ -29,30 +31,38 @@ export class EReaderPaginator {
       // Add nodes one by one until overflow
       for (let i = nodeIndex; i < nodes.length; i++) {
         const currentNode = nodes[i];
+        lastProcessedNode = currentNode;
+        
+        console.log(`[Paginator] Processing node ${i}:`, {
+          nodeType: currentNode.nodeType,
+          tagName: currentNode.nodeType === Node.ELEMENT_NODE ? (currentNode as Element).tagName : 'text',
+          textPreview: currentNode.textContent?.substring(0, 50) || 'no text'
+        });
         
         // Skip height calculation for the first section (book cover)
         if (isFirstSection && pages.length === 0) {
-          console.error('[Paginator] Skipping height check for book cover');
+          console.log('[Paginator] Skipping height check for book cover');
           currentPageContent.push(currentNode.cloneNode(true));
           lastGoodIndex = i + 1;
           continue;
         }
         
-        // Add node to current page
-        this.container.appendChild(currentNode.cloneNode(true));
-        currentPageContent.push(currentNode.cloneNode(true));
+        // Clone the node for testing
+        const clonedNode = currentNode.cloneNode(true);
+        
+        // Add node to container for height testing
+        this.container.appendChild(clonedNode);
         
         // Check if this addition caused overflow
         if (this.container.offsetHeight > this.pageHeight) {
-          // Remove the last node that caused overflow
-          this.container.removeChild(this.container.lastChild!);
-          currentPageContent.pop();
-
+          // Remove the test node from container
+          this.container.removeChild(clonedNode);
+          
           // Try to split the last node if it's a paragraph
           if (currentNode.nodeType === Node.ELEMENT_NODE && 
               (currentNode as Element).tagName === 'P') {
             
-            console.error('[Paginator] Attempting paragraph split');
+            console.log('[Paginator] Attempting paragraph split');
             
             const splitResult = this.splitParagraph(currentNode as Element, this.container);
             
@@ -62,31 +72,36 @@ export class EReaderPaginator {
               remainingWords: splitResult.remainingPart?.textContent?.split(' ').length || 0
             });
             
-            if (splitResult.fitsOnPage) {
+            if (splitResult.fitsOnPage && splitResult.fittingPart) {
               // The split paragraph fits, add it to current page
-              if (splitResult.fittingPart) {
-                currentPageContent.push(splitResult.fittingPart);
-              }
+              currentPageContent.push(splitResult.fittingPart);
               
               // Keep the remaining content for the next page
               if (splitResult.remainingPart) {
-                nodes[i] = splitResult.remainingPart;
+                // Insert the remaining part at the current position for next iteration
+                nodes.splice(i, 1, splitResult.remainingPart);
                 lastGoodIndex = i; // Stay on this node for next iteration
+                console.log('[Paginator] Inserted remaining part at position', i, 'for next iteration');
               } else {
                 lastGoodIndex = i + 1; // Move to next node
               }
             } else {
               // Even the split doesn't fit, keep the node for next page
               lastGoodIndex = i;
+              console.log('[Paginator] Split paragraph does not fit, keeping for next page');
             }
           } else {
             // Non-paragraph node doesn't fit, keep it for next page
             lastGoodIndex = i;
+            console.log('[Paginator] Non-paragraph node does not fit, keeping for next page');
           }
           break;
         }
         
+        // Node fits, add it to current page content
+        currentPageContent.push(clonedNode);
         lastGoodIndex = i + 1;
+        console.log('[Paginator] Node fits, added to current page');
       }
 
       // Create the page content
@@ -100,15 +115,20 @@ export class EReaderPaginator {
       } else {
         // Fallback: if no content fits, create a minimal page
         console.warn('[Paginator] No content fits on page, creating minimal page');
-        console.log('currentPageContent', currentPageContent);
         pages.push('<div class="page-break"></div>');
       }
       
       // Move to the next set of nodes
       // SAFEGUARD: Always advance nodeIndex to avoid infinite loops
       if (lastGoodIndex === nodeIndex) {
-        console.warn('[Paginator] Infinite loop safeguard triggered: advancing nodeIndex');
-        nodeIndex++;
+        // Only increment nodeIndex if the node at nodeIndex is the same as before (not a new split paragraph)
+        if (nodes[nodeIndex] === lastProcessedNode) {
+          console.warn('[Paginator] Infinite loop safeguard triggered: advancing nodeIndex');
+          nodeIndex++;
+        } else {
+          // A new node (split paragraph) was inserted, so try again at the same index
+          nodeIndex = lastGoodIndex;
+        }
       } else {
         nodeIndex = lastGoodIndex;
       }
@@ -132,7 +152,10 @@ export class EReaderPaginator {
     const text = paragraph.textContent || '';
     const words = text.split(' ').filter(word => word.trim().length > 0);
     
+    console.log(`[Paginator] Splitting paragraph with ${words.length} words: "${text.substring(0, 100)}..."`);
+    
     if (words.length <= 1) {
+      console.log('[Paginator] Paragraph has 1 or fewer words, cannot split');
       return { fitsOnPage: false, fittingPart: null, remainingPart: paragraph };
     }
     
@@ -148,8 +171,11 @@ export class EReaderPaginator {
     container.removeChild(fullParagraph);
     
     if (fullHeight <= this.pageHeight) {
+      console.log('[Paginator] Full paragraph fits, no split needed');
       return { fitsOnPage: true, fittingPart: paragraph, remainingPart: null };
     }
+    
+    console.log(`[Paginator] Full paragraph height (${fullHeight}) exceeds page height (${this.pageHeight}), searching for split point`);
     
     // Binary search for the maximum number of words that fit
     let left = 0;
@@ -185,6 +211,8 @@ export class EReaderPaginator {
       }
     }
     
+    console.log(`[Paginator] Binary search complete: best fit is ${bestFit} words out of ${words.length}`);
+    
     // Create the fitting part
     const fittingPart = bestFit > 0 ? document.createElement('p') : null;
     if (fittingPart) {
@@ -206,6 +234,8 @@ export class EReaderPaginator {
     }
     
     console.log(`[Paginator] Paragraph split: ${words.length} words -> ${bestFit} fitting, ${words.length - bestFit} remaining`);
+    console.log(`[Paginator] Fitting part: "${fittingPart?.textContent?.substring(0, 50)}..."`);
+    console.log(`[Paginator] Remaining part: "${remainingPart?.textContent?.substring(0, 50)}..."`);
     
     return {
       fitsOnPage: bestFit > 0,

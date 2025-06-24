@@ -20,6 +20,7 @@ Class Total_Book_Plugin {
 		require_once plugin_dir_path( __FILE__ ) . 'modules/chapter.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/settings.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/rest_apis.php';
+		require_once plugin_dir_path( __FILE__ ) . 'modules/shortcodes.php';
 		
 		add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
 		add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
@@ -65,6 +66,14 @@ Class Total_Book_Plugin {
 	}
 
 	public function enqueue_frontend_styles() {
+		// Always enqueue shortcode styles
+		wp_enqueue_style(
+			'total-book-shortcodes',
+			plugin_dir_url(__FILE__) . 'CSS/book-shortcodes.css',
+			array(),
+			'1.0.0'
+		);
+		
 		if (is_singular('book')) {
 			$settings = new TB_Settings();
 			$template = $settings->get_option('template', 'plain');
