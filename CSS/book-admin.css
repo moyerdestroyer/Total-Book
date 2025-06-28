@@ -98,4 +98,110 @@
 .no-chapters {
     color: #666;
     font-style: italic;
+}
+
+/* Author Links Styling */
+.book-author-link {
+    color: #0073aa;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.book-author-link:hover {
+    color: #005177;
+    text-decoration: underline;
+}
+
+/* Select2 Customization */
+#book_authors.widefat {
+    height: 36px !important;
+    min-height: 0 !important;
+    max-height: 36px !important;
+    padding: 0 !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 36px;
+    max-height: 36px;
+    background: #fff !important;
+    color: #222 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    align-items: center;
+    padding: 0 4px;
+    min-height: 32px;
+    height: 32px;
+    box-sizing: border-box;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #f3f4f5 !important;
+    color: #222 !important;
+    border: 1px solid #ccd0d4;
+    border-radius: 3px;
+    padding: 0 8px;
+    margin: 2px 4px 2px 0;
+    font-size: 13px;
+    max-width: 120px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 26px;
+    line-height: 26px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #888 !important;
+    margin-right: 5px;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #b32d2e !important;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    color: #222 !important;
+    background: #fff !important;
+    min-width: 80px;
+    height: 26px !important;
+    line-height: 26px !important;
+    margin: 0;
+    padding: 0 2px;
+    box-sizing: border-box;
+}
+
+/* Author taxonomy column styling */
+.column-book_author {
+    width: 15%;
+}
+
+.column-book_author a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.column-book_author a:hover {
+    color: #005177;
+    text-decoration: underline;
 } 

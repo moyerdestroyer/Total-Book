@@ -51,6 +51,15 @@ Class Total_Book_Plugin {
 				array(),
 				'1.0.0'
 			);
+			
+			// Enqueue Select2 for enhanced dropdowns
+			wp_enqueue_style(
+				'select2',
+				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+				array(),
+				'4.1.0'
+			);
+			
 			wp_enqueue_script(
 				'total-book-admin',
 				plugin_dir_url(__FILE__) . 'js/book-admin.js',
@@ -58,6 +67,16 @@ Class Total_Book_Plugin {
 				'1.0.0',
 				true
 			);
+			
+			// Enqueue Select2 JS
+			wp_enqueue_script(
+				'select2',
+				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+				array('jquery'),
+				'4.1.0',
+				true
+			);
+			
 			wp_localize_script('total-book-admin', 'totalBookAdmin', array(
 				'ajaxurl' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('total_book_nonce')
@@ -123,11 +142,34 @@ Class Total_Book_Plugin {
 		
 		// Flush rewrite rules
 		flush_rewrite_rules();
+		
+		// Migrate legacy author fields to taxonomy
+		$this->migrate_legacy_authors();
 	}
 
 	public function deactivate() {
 		// Flush rewrite rules on deactivation
 		flush_rewrite_rules();
+	}
+
+	/**
+	 * Migrate legacy author fields to the new taxonomy system
+	 */
+	private function migrate_legacy_authors() {
+		// Only run migration if we haven't done it before
+		if (get_option('total_book_authors_migrated', false)) {
+			return;
+		}
+		
+		$migrated_count = TB_Book::migrate_legacy_authors();
+		
+		// Mark migration as complete
+		update_option('total_book_authors_migrated', true);
+		
+		// Log migration results
+		if ($migrated_count > 0) {
+			error_log("Total Book: Migrated {$migrated_count} books to use author taxonomy");
+		}
 	}
 }
 

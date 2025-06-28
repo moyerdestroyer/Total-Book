@@ -309,6 +309,7 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
       background: #23272f;
       color: #f4f4f4;
       border: 1px solid #444;
+      min-width: auto;
       &.active {
         background: $primary-color;
         color: #fff;
@@ -432,7 +433,6 @@ $paper-shadow: rgba(0, 0, 0, 0.1);
     }
     button {
       @include button-base;
-      min-width: 36px;
       padding: 6px 12px;
       font-size: 1rem;
       background: #f4f4f4;

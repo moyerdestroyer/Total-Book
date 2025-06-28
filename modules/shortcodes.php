@@ -90,7 +90,7 @@ class Shortcodes {
         $show_description = filter_var($atts['show_description'], FILTER_VALIDATE_BOOLEAN);
 
         // Get book meta
-        $author = get_post_meta($book_id, '_book_author', true);
+        $authors = TB_Book::get_book_authors($book_id);
         $isbn = get_post_meta($book_id, '_book_isbn', true);
         $publication_date = get_post_meta($book_id, '_book_publication_date', true);
         $publisher = get_post_meta($book_id, '_book_publisher', true);
@@ -106,12 +106,15 @@ class Shortcodes {
                 <?php endif; ?>
             </div>
 
-            <?php if ($show_meta && ($author || $isbn || $publication_date || $publisher)) : ?>
+            <?php if ($show_meta && (!empty($authors) || $isbn || $publication_date || $publisher)) : ?>
                 <div class="book-meta">
-                    <?php if ($author) : ?>
+                    <?php if (!empty($authors)) : ?>
                         <div class="book-author">
                             <strong><?php _e('Author:', 'total-book'); ?></strong> 
-                            <?php echo esc_html($author); ?>
+                            <?php 
+                            $author_links = TB_Book::get_book_authors_links($book_id);
+                            echo implode(', ', $author_links);
+                            ?>
                         </div>
                     <?php endif; ?>
                     
@@ -175,42 +178,23 @@ class Shortcodes {
                 <?php foreach ($books as $book) : ?>
                     <div class="book-item">
                         <div class="book-cover">
-                            <?php if (has_post_thumbnail($book->ID)) : ?>
-                                <a href="<?php echo get_permalink($book->ID); ?>">
+                            <a href="<?php echo get_permalink($book->ID); ?>">
+                                <?php if (has_post_thumbnail($book->ID)) : ?>
                                     <?php echo get_the_post_thumbnail($book->ID, 'medium'); ?>
-                                </a>
-                            <?php else : ?>
-                                <div class="book-cover-placeholder">
-                                    <span class="dashicons dashicons-book"></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="book-info">
-                            <h3 class="book-title">
-                                <a href="<?php echo get_permalink($book->ID); ?>">
-                                    <?php echo esc_html($book->post_title); ?>
-                                </a>
-                            </h3>
-
-                            <?php if ($show_meta) : ?>
-                                <?php 
-                                $author = get_post_meta($book->ID, '_book_author', true);
-                                if ($author) : ?>
-                                    <div class="book-author"><?php echo esc_html($author); ?></div>
+                                <?php else : ?>
+                                    <div class="book-cover-placeholder">
+                                        <span class="dashicons dashicons-book"></span>
+                                    </div>
                                 <?php endif; ?>
-                            <?php endif; ?>
-
-                            <?php if ($show_excerpt && $book->post_excerpt) : ?>
-                                <div class="book-excerpt">
-                                    <?php echo wp_trim_words($book->post_excerpt, 20); ?>
+                            </a>
+                            <div class="book-overlay">
+                                <div class="book-title"><?php echo esc_html($book->post_title); ?></div>
+                                <div class="book-author">
+                                    <?php
+                                    $author_links = TB_Book::get_book_authors_links($book->ID);
+                                    echo implode('', $author_links);
+                                    ?>
                                 </div>
-                            <?php endif; ?>
-
-                            <div class="book-actions">
-                                <a href="<?php echo get_permalink($book->ID); ?>" class="button book-view-btn">
-                                    <?php _e('Read Book', 'total-book'); ?>
-                                </a>
                             </div>
                         </div>
                     </div>

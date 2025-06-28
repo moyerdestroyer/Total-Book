@@ -25,7 +25,7 @@ Class TB_Blog {
     public function modify_content($content) {
         if (is_singular('book')) {
             // Get book meta
-            $author = get_post_meta(get_the_ID(), '_book_author', true);
+            $authors = TB_Book::get_book_authors(get_the_ID());
             $isbn = get_post_meta(get_the_ID(), '_book_isbn', true);
             $publication_date = get_post_meta(get_the_ID(), '_book_publication_date', true);
             $publisher = get_post_meta(get_the_ID(), '_book_publisher', true);
@@ -47,13 +47,14 @@ Class TB_Blog {
             }
 
             // Add meta information
-            if ($author || $isbn || $publication_date || $publisher) {
+            if (!empty($authors) || $isbn || $publication_date || $publisher) {
                 $book_content .= '<div class="book-meta">';
-                if ($author) {
+                if (!empty($authors)) {
+                    $author_links = TB_Book::get_book_authors_links(get_the_ID());
                     $book_content .= sprintf(
                         '<div class="book-author"><strong>%s</strong> %s</div>',
                         __('Author:', 'total-book'),
-                        esc_html($author)
+                        implode(', ', $author_links)
                     );
                 }
                 if ($isbn) {
@@ -189,7 +190,7 @@ Class TB_Blog {
             $book = get_post($book_id);
             
             // Get book meta
-            $author = get_post_meta($book_id, '_book_author', true);
+            $authors = TB_Book::get_book_authors($book_id);
             $description = get_post_meta($book_id, '_book_description', true);
             
             // Output meta tags
@@ -201,8 +202,9 @@ Class TB_Blog {
                 echo '<meta property="og:description" content="' . esc_attr($description) . '" />' . "\n";
             }
             
-            if ($author) {
-                echo '<meta property="book:author" content="' . esc_attr($author) . '" />' . "\n";
+            if (!empty($authors)) {
+                $first_author = $authors[0];
+                echo '<meta property="book:author" content="' . esc_attr($first_author) . '" />' . "\n";
             }
         }
     }

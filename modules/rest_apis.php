@@ -98,7 +98,7 @@ class Total_Book_REST_API {
 
         // Get all book meta with defaults
         $meta = array(
-            'author' => get_post_meta($book_id, '_book_author', true) ?: '',
+            'author' => TB_Book::get_book_authors($book_id),
             'isbn' => get_post_meta($book_id, '_book_isbn', true) ?: '',
             'publication_date' => get_post_meta($book_id, '_book_publication_date', true) ?: '',
             'publisher' => get_post_meta($book_id, '_book_publisher', true) ?: '',
@@ -179,8 +179,10 @@ class Total_Book_REST_API {
 
         // Author Page
         if (!empty($meta['author'])) {
+            $author_names = is_array($meta['author']) ? $meta['author'] : array($meta['author']);
+            $author_links = TB_Book::get_book_authors_links($book_id);
             $content['author_page'] = apply_filters('tb_book_author_page_rest', array(
-                'author' => '<p class="book-author">By ' . esc_html($meta['author']) . '</p>',
+                'author' => '<p class="book-author">By ' . implode(', ', $author_links) . '</p>',
             ), $book_id);
         }
 
@@ -190,9 +192,12 @@ class Total_Book_REST_API {
         
         if (!empty($meta['publication_date']) || !empty($meta['author']) || !empty($meta['isbn']) || !empty($meta['publisher']) || !empty($meta['language'])) {
             $pub_date = !empty($meta['publication_date']) ? strtotime($meta['publication_date']) : false;
+            $author_names = is_array($meta['author']) ? $meta['author'] : array($meta['author']);
+            $first_author = !empty($author_names) ? $author_names[0] : '';
+            
             $content['copyright_page'] = apply_filters('tb_book_copyright_page_rest', array(
                 'html' => '<div class="book-copyright-page">' .
-                    (!$disable_auto_copyright && !empty($meta['author']) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($meta['author']) . '</p>' : '') .
+                    (!$disable_auto_copyright && !empty($first_author) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($first_author) . '</p>' : '') .
                     (!empty($meta['isbn']) ? '<p class="book-isbn">ISBN: ' . esc_html($meta['isbn']) . '</p>' : '') .
                     (!empty($meta['publisher']) ? '<p class="book-publisher">Published by ' . esc_html($meta['publisher']) . '</p>' : '') .
                     ($pub_date ? '<p class="book-publication-date">' . date('F j, Y', $pub_date) . '</p>' : '') .
@@ -212,7 +217,7 @@ class Total_Book_REST_API {
         if (!empty($chapter_data)) {
             $content['table_of_contents_page'] = apply_filters('tb_book_toc_rest', array(
                 'html' => '<h1 class="book-toc-title">Table of Contents</h1><ul class="book-toc-list">' . implode('', array_map(function($chapter) {
-                    return '<li><a href="#chapter-' . $chapter['id'] . '">' . esc_html($chapter['title']) . '</a></li>';
+                    return '<li>' . esc_html($chapter['title']) . '</li>';
                 }, $chapter_data)) . '</ul>',
             ), $book_id);
         }

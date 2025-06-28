@@ -44,7 +44,7 @@ Class TB_Book {
 			'menu_icon'          => 'dashicons-book',
 			'supports'           => array('title', 'thumbnail', 'excerpt', 'custom-fields'),
 			'show_in_rest'       => true,
-			'taxonomies'         => array('book_category'),
+			'taxonomies'         => array('book_category', 'book_author'),
 		);
 
 		register_post_type('book', $args);
@@ -76,6 +76,31 @@ Class TB_Book {
 
 		register_taxonomy('book_category', array('book'), $category_args);
 		
+		// Register Book Author Taxonomy
+		$author_labels = array(
+			'name'              => _x('Book Authors', 'taxonomy general name', 'total-book'),
+			'singular_name'     => _x('Book Author', 'taxonomy singular name', 'total-book'),
+			'search_items'      => __('Search Book Authors', 'total-book'),
+			'all_items'         => __('All Book Authors', 'total-book'),
+			'edit_item'         => __('Edit Book Author', 'total-book'),
+			'update_item'       => __('Update Book Author', 'total-book'),
+			'add_new_item'      => __('Add New Book Author', 'total-book'),
+			'new_item_name'     => __('New Book Author Name', 'total-book'),
+			'menu_name'         => __('Authors', 'total-book'),
+		);
+
+		$author_args = array(
+			'hierarchical'      => false,
+			'labels'            => $author_labels,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array('slug' => 'book-author'),
+			'show_in_rest'      => true,
+		);
+
+		register_taxonomy('book_author', array('book'), $author_args);
+		
 		// Add meta box for book details
 		add_action('add_meta_boxes', array($this, 'add_book_meta_boxes'));
 		add_action('save_post', array($this, 'save_book_meta'));
@@ -99,6 +124,9 @@ Class TB_Book {
 			'normal',
 			'high'
 		);
+
+		// Remove the default taxonomy metabox for book_author
+		remove_meta_box('tagsdiv-book_author', 'book', 'side');
 	}
 
 	public function render_book_meta_box($post) {
@@ -115,6 +143,17 @@ Class TB_Book {
 		$dedication = get_post_meta($post->ID, '_book_dedication', true);
 		$acknowledgments = get_post_meta($post->ID, '_book_acknowledgments', true);
 		$about_author = get_post_meta($post->ID, '_book_about_author', true);
+		
+		// Get all available authors (for possible future autocomplete, not used in tag mode)
+		$all_authors = get_terms(array(
+			'taxonomy' => 'book_author',
+			'hide_empty' => false,
+			'orderby' => 'name',
+			'order' => 'ASC'
+		));
+		// Get current author terms
+		$current_authors = wp_get_post_terms($post->ID, 'book_author', array('fields' => 'names'));
+		$current_author_names = implode(',', $current_authors);
 		?>
 		<div class="book-meta-fields">
 			<p>
@@ -122,8 +161,11 @@ Class TB_Book {
 				<input type="text" id="book_subtitle" name="book_subtitle" value="<?php echo esc_attr($subtitle); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_author"><?php _e('Author', 'total-book'); ?> <span style="color: red;">*</span></label>
-				<input type="text" id="book_author" name="book_author" value="<?php echo esc_attr($author); ?>" class="widefat" required>
+				<label for="book_authors_tagify"><?php _e('Authors', 'total-book'); ?> <span style="color: red;">*</span></label>
+				<input id="book_authors_tagify" class="widefat" value="<?php echo esc_attr($current_author_names); ?>">
+				<p class="description">
+					<?php _e('Type an author name and press Enter or comma. Add as many as you like. Names can include spaces and punctuation.', 'total-book'); ?>
+				</p>
 			</p>
 			<p>
 				<label for="book_isbn"><?php _e('ISBN', 'total-book'); ?></label>
@@ -154,31 +196,34 @@ Class TB_Book {
 				<textarea id="book_about_author" name="book_about_author" class="widefat" rows="5"><?php echo esc_textarea($about_author); ?></textarea>
 			</p>
 		</div>
+		<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet">
+		<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 		<script type="text/javascript">
 		jQuery(document).ready(function($) {
-			// Validate author field before form submission
+			var input = document.getElementById('book_authors_tagify');
+			var tagify = new Tagify(input, {
+				whitelist: [], // Could be populated with $all_authors if desired
+				maxTags: 10,
+				trim: true,
+				duplicates: false,
+				placeholder: '<?php echo esc_js(__('Type author name and press Enter', 'total-book')); ?>',
+			});
+
 			$('#post').on('submit', function(e) {
-				var authorField = $('#book_author');
-				var authorValue = authorField.val().trim();
-				
-				if (!authorValue) {
+				var tagData = tagify.value;
+				if (!tagData || tagData.length === 0) {
 					e.preventDefault();
-					alert('<?php echo esc_js(__('Author field is required. Please enter an author name.', 'total-book')); ?>');
-					authorField.focus();
+					alert('<?php echo esc_js(__('At least one author is required. Please add an author.', 'total-book')); ?>');
+					input.focus();
 					return false;
 				}
-			});
-			
-			// Add visual indication when author field is empty
-			$('#book_author').on('blur', function() {
-				var $this = $(this);
-				var value = $this.val().trim();
-				
-				if (!value) {
-					$this.css('border-color', '#dc3232');
-				} else {
-					$this.css('border-color', '');
+				// Before submit, set a hidden field with the author names (comma separated)
+				if ($('#book_authors_hidden').length === 0) {
+					$('<input>').attr({type: 'hidden', id: 'book_authors_hidden', name: 'book_authors_tagify_hidden'}).appendTo($(this));
 				}
+				$('#book_authors_hidden').val(tagData.map(function(tag){return tag.value;}).join(','));
+				// Remove name attribute from the visible input so only the hidden field is submitted
+				$('#book_authors_tagify').removeAttr('name');
 			});
 		});
 		</script>
@@ -251,22 +296,23 @@ Class TB_Book {
 			return;
 		}
 
-		// Validate required fields
-		if (isset($_POST['book_author']) && empty(trim($_POST['book_author']))) {
-			// Set an error message
-			set_transient('book_author_error_' . $post_id, __('Author field is required. Please enter an author name.', 'total-book'), 45);
-			
-			// Prevent the post from being saved
-			wp_die(
-				__('Author field is required. Please enter an author name.', 'total-book'),
-				__('Validation Error', 'total-book'),
-				array('back_link' => true)
-			);
+		// Handle author taxonomy
+		if (isset($_POST['book_authors_tagify_hidden'])) {
+			$author_names = array_map('sanitize_text_field', explode(',', $_POST['book_authors_tagify_hidden']));
+			$author_names = array_filter($author_names, 'strlen');
+			foreach ($author_names as $author_name) {
+				$term = term_exists($author_name, 'book_author');
+				if (!$term) {
+					wp_insert_term($author_name, 'book_author');
+				}
+			}
+			if (!empty($author_names)) {
+				wp_set_object_terms($post_id, $author_names, 'book_author');
+			}
 		}
 
 		// Sanitize and save the data
 		$fields = array(
-			'book_author' => 'sanitize_text_field',
 			'book_isbn' => 'sanitize_text_field',
 			'book_publication_date' => 'sanitize_text_field',
 			'book_publisher' => 'sanitize_text_field',
@@ -377,6 +423,81 @@ Class TB_Book {
 		}
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Get book authors (supports both taxonomy and legacy field)
+	 */
+	public static function get_book_authors($book_id) {
+		// First try to get authors from taxonomy
+		$author_terms = wp_get_post_terms($book_id, 'book_author', array('fields' => 'names'));
+		$author_terms = array_filter($author_terms, 'strlen');
+		if (!empty($author_terms)) {
+			return $author_terms;
+		}
+		return array();
+	}
+
+	/**
+	 * Get book authors as links (for display)
+	 */
+	public static function get_book_authors_links($book_id) {
+		$authors = self::get_book_authors($book_id);
+		$authors = array_filter($authors, 'strlen');
+		$author_links = array();
+		foreach ($authors as $author) {
+			// Try to find the author term
+			$term = get_term_by('name', $author, 'book_author');
+			if ($term && !is_wp_error($term)) {
+				$author_links[] = sprintf(
+					'<a href="%s" class="book-author-link">%s</a>',
+					esc_url(get_term_link($term)),
+					esc_html($author)
+				);
+			} else {
+				// Fallback to plain text if no term exists
+				$author_links[] = esc_html($author);
+			}
+		}
+		return $author_links;
+	}
+
+	/**
+	 * Migrate legacy author field to taxonomy
+	 */
+	public static function migrate_legacy_authors() {
+		$books = get_posts(array(
+			'post_type' => 'book',
+			'posts_per_page' => -1,
+			'post_status' => 'any'
+		));
+		
+		$migrated_count = 0;
+		
+		foreach ($books as $book) {
+			$legacy_author = get_post_meta($book->ID, '_book_author', true);
+			
+			if (!empty($legacy_author)) {
+				// Check if author term already exists
+				$existing_terms = wp_get_post_terms($book->ID, 'book_author');
+				
+				if (empty($existing_terms) || is_wp_error($existing_terms)) {
+					// Create author term if it doesn't exist
+					$term = term_exists($legacy_author, 'book_author');
+					if (!$term) {
+						$term = wp_insert_term($legacy_author, 'book_author');
+					}
+					
+					if (!is_wp_error($term)) {
+						// Set the author term for this book
+						wp_set_object_terms($book->ID, $term['term_id'], 'book_author');
+						$migrated_count++;
+					}
+				}
+			}
+		}
+		
+		return $migrated_count;
 	}
 }
 $tb_book = new TB_Book();
