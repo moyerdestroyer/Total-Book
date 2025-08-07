@@ -89,6 +89,31 @@
     list-style: none;
 }
 
+/* Column-specific grid layouts */
+.books-grid.book-col-1 {
+    grid-template-columns: 1fr;
+}
+
+.books-grid.book-col-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.books-grid.book-col-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.books-grid.book-col-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.books-grid.book-col-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.books-grid.book-col-6 {
+    grid-template-columns: repeat(6, 1fr);
+}
+
 .book-item {
     background: #fff;
     border-radius: 8px;
@@ -332,9 +357,12 @@
         gap: 10px;
     }
     
+    /* On mobile, override column classes to single column */
     .books-grid.book-col-2,
     .books-grid.book-col-3,
-    .books-grid.book-col-4 {
+    .books-grid.book-col-4,
+    .books-grid.book-col-5,
+    .books-grid.book-col-6 {
         grid-template-columns: 1fr;
     }
     
