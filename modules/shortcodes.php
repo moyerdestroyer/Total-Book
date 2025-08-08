@@ -60,6 +60,7 @@ class Shortcodes {
 
         // Add category filter if specified
         if (!empty($atts['category'])) {
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Cached query with reasonable limits
             $args['tax_query'] = array(
                 array(
                     'taxonomy' => 'book_category',
@@ -69,7 +70,14 @@ class Shortcodes {
             );
         }
 
-        $books = get_posts($args);
+        // Cache the query results to improve performance
+        $cache_key = 'total_books_shortcode_' . md5(serialize($args));
+        $books = wp_cache_get($cache_key, 'total_book');
+        
+        if (false === $books) {
+            $books = get_posts($args);
+            wp_cache_set($cache_key, $books, 'total_book', HOUR_IN_SECONDS);
+        }
 
         if (empty($books)) {
             return '<p class="total-book-no-results">' . __('No books found.', 'total-book') . '</p>';
@@ -110,31 +118,31 @@ class Shortcodes {
                 <div class="book-meta">
                     <?php if (!empty($authors)) : ?>
                         <div class="book-author">
-                            <strong><?php _e('Author:', 'total-book'); ?></strong> 
+                            <strong><?php esc_html_e('Author:', 'total-book'); ?></strong> 
                             <?php 
                             $author_links = TB_Book::get_book_authors_links($book_id);
-                            echo implode(', ', $author_links);
+                            echo esc_html(implode(', ', $author_links));
                             ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($isbn) : ?>
                         <div class="book-isbn">
-                            <strong><?php _e('ISBN:', 'total-book'); ?></strong> 
+                            <strong><?php esc_html_e('ISBN:', 'total-book'); ?></strong> 
                             <?php echo esc_html($isbn); ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($publication_date) : ?>
                         <div class="book-publication-date">
-                            <strong><?php _e('Publication Date:', 'total-book'); ?></strong> 
+                            <strong><?php esc_html_e('Publication Date:', 'total-book'); ?></strong> 
                             <?php echo esc_html($publication_date); ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($publisher) : ?>
                         <div class="book-publisher">
-                            <strong><?php _e('Publisher:', 'total-book'); ?></strong> 
+                            <strong><?php esc_html_e('Publisher:', 'total-book'); ?></strong> 
                             <?php echo esc_html($publisher); ?>
                         </div>
                     <?php endif; ?>
@@ -143,19 +151,19 @@ class Shortcodes {
 
             <?php if ($show_description && $description) : ?>
                 <div class="book-description">
-                    <?php echo wpautop(esc_html($description)); ?>
+                    <?php echo esc_html(wpautop(($description))); ?>
                 </div>
             <?php endif; ?>
 
             <?php if ($show_toc) : ?>
                 <div class="book-toc">
-                    <?php echo $this->render_book_toc($book_id); ?>
+                    <?php echo esc_html($this->render_book_toc($book_id)); ?>
                 </div>
             <?php endif; ?>
 
             <div class="book-actions">
-                <a href="<?php echo get_permalink($book_id); ?>" class="button book-view-btn">
-                    <?php _e('View Book', 'total-book'); ?>
+                <a href="<?php echo esc_url(get_permalink($book_id)); ?>" class="button book-view-btn">
+                    <?php esc_html_e('View Book', 'total-book'); ?>
                 </a>
             </div>
         </div>
@@ -178,7 +186,7 @@ class Shortcodes {
                 <?php foreach ($books as $book) : ?>
                     <div class="book-item">
                         <div class="book-cover">
-                            <a href="<?php echo get_permalink($book->ID); ?>">
+                            <a href="<?php echo esc_url(get_permalink($book->ID)); ?>">
                                 <?php if (has_post_thumbnail($book->ID)) : ?>
                                     <?php echo get_the_post_thumbnail($book->ID, 'medium'); ?>
                                 <?php else : ?>
@@ -192,7 +200,7 @@ class Shortcodes {
                                 <div class="book-author">
                                     <?php
                                     $author_links = TB_Book::get_book_authors_links($book->ID);
-                                    echo implode('', $author_links);
+                                    echo esc_html(implode('', $author_links));
                                     ?>
                                 </div>
                             </div>
@@ -223,12 +231,12 @@ class Shortcodes {
         ob_start();
         ?>
         <div class="total-book-toc">
-            <h3><?php _e('Table of Contents', 'total-book'); ?></h3>
+            <h3><?php esc_html_e('Table of Contents', 'total-book'); ?></h3>
             <ul class="chapter-list">
                 <?php foreach ($chapters as $index => $chapter) : ?>
                     <li class="chapter-item">
-                        <a href="<?php echo get_permalink($chapter->ID); ?>">
-                            <span class="chapter-number"><?php echo ($index + 1); ?>.</span>
+                        <a href="<?php echo esc_url(get_permalink($chapter->ID)); ?>">
+                            <span class="chapter-number"><?php echo esc_html($index + 1); ?>.</span>
                             <span class="chapter-title"><?php echo esc_html($chapter->post_title); ?></span>
                         </a>
                     </li>

@@ -197,10 +197,10 @@ class Total_Book_REST_API {
             
             $content['copyright_page'] = apply_filters('tb_book_copyright_page_rest', array(
                 'html' => '<div class="book-copyright-page">' .
-                    (!$disable_auto_copyright && !empty($first_author) ? '<p class="book-copyright">© ' . ($pub_date ? date('Y', $pub_date) : '') . ' ' . esc_html($first_author) . '</p>' : '') .
+                    (!$disable_auto_copyright && !empty($first_author) ? '<p class="book-copyright">© ' . ($pub_date ? gmdate('Y', $pub_date) : '') . ' ' . esc_html($first_author) . '</p>' : '') .
                     (!empty($meta['isbn']) ? '<p class="book-isbn">ISBN: ' . esc_html($meta['isbn']) . '</p>' : '') .
                     (!empty($meta['publisher']) ? '<p class="book-publisher">Published by ' . esc_html($meta['publisher']) . '</p>' : '') .
-                    ($pub_date ? '<p class="book-publication-date">' . date('F j, Y', $pub_date) . '</p>' : '') .
+                    ($pub_date ? '<p class="book-publication-date">' . gmdate('F j, Y', $pub_date) . '</p>' : '') .
                     (!empty($meta['language']) ? '<p class="book-language">Language: ' . esc_html($meta['language']) . '</p>' : '') .
                     '</div>',
             ), $book_id);

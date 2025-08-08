@@ -1,5 +1,6 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/widget.tsx',
@@ -12,6 +13,18 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'book-reader.min.css',
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'node_modules/@yaireo/tagify/dist/tagify.js',
+          to: 'tagify.js',
+        },
+        {
+          from: 'node_modules/@yaireo/tagify/dist/tagify.css',
+          to: 'tagify.css',
+        },
+      ],
     }),
   ],
   module: {
@@ -33,7 +46,7 @@ module.exports = {
           MiniCssExtractPlugin.loader,
           'css-loader',
           'postcss-loader',
-          'sass-loader'
+          'sass-loader',
         ],
       },
       {
@@ -56,8 +69,6 @@ module.exports = {
     minimize: true,
   },
   externals: {
-    // Don't bundle these if they're available globally
-    // react: 'React',
-    // 'react-dom': 'ReactDOM',
+    // Existing externals...
   },
 };

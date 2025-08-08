@@ -52,9 +52,6 @@ $mobile-breakpoint: 768px;
     text-align: center;
     max-width: 100%;
     height: auto;
-  }
-
-  .book-cover {
     width: 100%;
     margin: auto;
   }
@@ -62,9 +59,11 @@ $mobile-breakpoint: 768px;
   h1 {
     text-align: center;
   }
+  
   h2 {
     text-align: center;
   }
+  
   .book-title {
     font-size: 3rem;
     font-weight: 700;
@@ -72,6 +71,7 @@ $mobile-breakpoint: 768px;
     padding: 0 18px;
     color: inherit;
   }
+  
   .book-subtitle {
     font-size: 2rem;
     font-weight: 300;
@@ -80,6 +80,7 @@ $mobile-breakpoint: 768px;
     color: inherit;
     font-style: italic;
   }
+  
   .book-author {
     font-size: 3rem;
     text-align: center;
@@ -91,15 +92,17 @@ $mobile-breakpoint: 768px;
   .book-copyright-page {
     margin: auto;
   }
+  
   .book-dedication {
     margin: auto;
   }
 
   .book-toc-list {
-    text-align:center;
+    text-align: center;
     list-style-type: none;
     padding: 0;
     margin: 0;
+    
     li {
       margin-bottom: 18px;
     }
@@ -122,8 +125,9 @@ $mobile-breakpoint: 768px;
   figure {
     margin: 1em 0;
     max-height: 70vh;
+    
     img {
-      padding:0;
+      padding: 0;
       max-width: 100%;
       max-height: 100%;
     }
@@ -131,7 +135,7 @@ $mobile-breakpoint: 768px;
 
   // Mobile styles
   @media (max-width: $mobile-breakpoint) {
-    width:100%!important;
+    width: 100% !important;
     margin: 0;
     padding: 0;
     
@@ -162,18 +166,16 @@ $mobile-breakpoint: 768px;
       }
     }
   }
-  
 }
 
 // Book Content Specific Styles
 .book-content {
-  @include shared-content-styles;
   height: calc(var(--content-height) - #{$content-padding * 2});
+  @include shared-content-styles;
 }
 
 // Measurement container
 .book-content-measure {
-  @include shared-content-styles;
   min-height: calc(var(--content-height) - #{$content-padding * 2});
   position: absolute;
   top: 20px;
@@ -182,4 +184,5 @@ $mobile-breakpoint: 768px;
   z-index: -1;
   box-sizing: border-box;
   height: fit-content;
+  @include shared-content-styles;
 }

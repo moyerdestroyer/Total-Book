@@ -40,28 +40,28 @@ $show_toc = $settings->get_option('show_toc', true);
             <div class="book-meta">
                 <?php if ($author) : ?>
                     <div class="book-author">
-                        <strong><?php _e('Author:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Author:', 'total-book'); ?></strong>
                         <span><?php echo esc_html($author); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($isbn) : ?>
                     <div class="book-isbn">
-                        <strong><?php _e('ISBN:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('ISBN:', 'total-book'); ?></strong>
                         <span><?php echo esc_html($isbn); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($publication_date) : ?>
                     <div class="book-publication-date">
-                        <strong><?php _e('Publication Date:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Publication Date:', 'total-book'); ?></strong>
                         <span><?php echo esc_html($publication_date); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($publisher) : ?>
                     <div class="book-publisher">
-                        <strong><?php _e('Publisher:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Publisher:', 'total-book'); ?></strong>
                         <span><?php echo esc_html($publisher); ?></span>
                     </div>
                 <?php endif; ?>
@@ -71,23 +71,23 @@ $show_toc = $settings->get_option('show_toc', true);
 
     <?php if ($dedication) : ?>
         <div class="book-dedication">
-            <?php echo wpautop(esc_html($dedication)); ?>
+            <?php echo wp_kses_post(wpautop($dedication)); ?>
         </div>
     <?php endif; ?>
 
     <?php if ($description) : ?>
         <div class="book-description">
-            <?php echo wpautop(esc_html($description)); ?>
+            <?php echo wp_kses_post(wpautop($description)); ?>
         </div>
     <?php endif; ?>
 
     <?php if ($show_toc && !empty($chapters)) : ?>
         <div class="book-toc">
-            <h2><?php _e('Table of Contents', 'total-book'); ?></h2>
+            <h2><?php esc_html_e('Table of Contents', 'total-book'); ?></h2>
             <ul class="chapter-list">
                 <?php foreach ($chapters as $chapter) : ?>
                     <li class="chapter-item">
-                        <a href="<?php echo get_permalink($chapter->ID); ?>">
+                        <a href="<?php echo esc_url(get_permalink($chapter->ID)); ?>">
                             <?php echo esc_html($chapter->post_title); ?>
                         </a>
                     </li>
@@ -100,10 +100,10 @@ $show_toc = $settings->get_option('show_toc', true);
         <div class="book-chapters">
             <?php foreach ($chapters as $chapter) : ?>
                 <div class="chapter-content">
-                    <h2 id="chapter-<?php echo $chapter->ID; ?>">
+                    <h2 id="chapter-<?php echo esc_attr($chapter->ID); ?>">
                         <?php echo esc_html($chapter->post_title); ?>
                     </h2>
-                    <?php echo apply_filters('the_content', $chapter->post_content); ?>
+                    <?php echo wp_kses_post(apply_filters('the_content', $chapter->post_content)); ?>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -111,15 +111,15 @@ $show_toc = $settings->get_option('show_toc', true);
 
     <?php if ($acknowledgments) : ?>
         <div class="book-acknowledgments">
-            <h2><?php _e('Acknowledgments', 'total-book'); ?></h2>
-            <?php echo wpautop(esc_html($acknowledgments)); ?>
+            <h2><?php esc_html_e('Acknowledgments', 'total-book'); ?></h2>
+            <?php echo wp_kses_post(wpautop($acknowledgments)); ?>
         </div>
     <?php endif; ?>
 
     <?php if ($about_author) : ?>
         <div class="book-about-author">
-            <h2><?php _e('About The Author', 'total-book'); ?></h2>
-            <?php echo wpautop(esc_html($about_author)); ?>
+            <h2><?php esc_html_e('About The Author', 'total-book'); ?></h2>
+            <?php echo wp_kses_post(wpautop($about_author)); ?>
         </div>
     <?php endif; ?>
 </article>

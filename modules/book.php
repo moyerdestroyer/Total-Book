@@ -157,47 +157,45 @@ Class TB_Book {
 		?>
 		<div class="book-meta-fields">
 			<p>
-				<label for="book_subtitle"><?php _e('Subtitle', 'total-book'); ?></label>
+				<label for="book_subtitle"><?php esc_html_e('Subtitle', 'total-book'); ?></label>
 				<input type="text" id="book_subtitle" name="book_subtitle" value="<?php echo esc_attr($subtitle); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_authors_tagify"><?php _e('Authors', 'total-book'); ?> <span style="color: red;">*</span></label>
+				<label for="book_authors_tagify"><?php esc_html_e('Authors', 'total-book'); ?> <span style="color: red;">*</span></label>
 				<input id="book_authors_tagify" class="widefat" value="<?php echo esc_attr($current_author_names); ?>">
 				<p class="description">
-					<?php _e('Type an author name and press Enter or comma. Add as many as you like. Names can include spaces and punctuation.', 'total-book'); ?>
+					<?php esc_html_e('Type an author name and press Enter or comma. Add as many as you like. Names can include spaces and punctuation.', 'total-book'); ?>
 				</p>
 			</p>
 			<p>
-				<label for="book_isbn"><?php _e('ISBN', 'total-book'); ?></label>
+				<label for="book_isbn"><?php esc_html_e('ISBN', 'total-book'); ?></label>
 				<input type="text" id="book_isbn" name="book_isbn" value="<?php echo esc_attr($isbn); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_publication_date"><?php _e('Publication Date', 'total-book'); ?></label>
+				<label for="book_publication_date"><?php esc_html_e('Publication Date', 'total-book'); ?></label>
 				<input type="date" id="book_publication_date" name="book_publication_date" value="<?php echo esc_attr($publication_date); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_publisher"><?php _e('Publisher', 'total-book'); ?></label>
+				<label for="book_publisher"><?php esc_html_e('Publisher', 'total-book'); ?></label>
 				<input type="text" id="book_publisher" name="book_publisher" value="<?php echo esc_attr($publisher); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_description"><?php _e('Description', 'total-book'); ?></label>
+				<label for="book_description"><?php esc_html_e('Description', 'total-book'); ?></label>
 				<textarea id="book_description" name="book_description" class="widefat" rows="5"><?php echo esc_textarea($description); ?></textarea>
 			</p>
 			<p>
-				<label for="book_dedication"><?php _e('Dedication', 'total-book'); ?></label>
+				<label for="book_dedication"><?php esc_html_e('Dedication', 'total-book'); ?></label>
 				<textarea id="book_dedication" name="book_dedication" class="widefat" rows="3"><?php echo esc_textarea($dedication); ?></textarea>
 			</p>
 			<p>
-				<label for="book_acknowledgments"><?php _e('Acknowledgments', 'total-book'); ?></label>
+				<label for="book_acknowledgments"><?php esc_html_e('Acknowledgments', 'total-book'); ?></label>
 				<textarea id="book_acknowledgments" name="book_acknowledgments" class="widefat" rows="5"><?php echo esc_textarea($acknowledgments); ?></textarea>
 			</p>
 			<p>
-				<label for="book_about_author"><?php _e('About The Author', 'total-book'); ?></label>
+				<label for="book_about_author"><?php esc_html_e('About The Author', 'total-book'); ?></label>
 				<textarea id="book_about_author" name="book_about_author" class="widefat" rows="5"><?php echo esc_textarea($about_author); ?></textarea>
 			</p>
 		</div>
-		<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet">
-		<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 		<script type="text/javascript">
 		jQuery(document).ready(function($) {
 			var input = document.getElementById('book_authors_tagify');
@@ -249,26 +247,26 @@ Class TB_Book {
 						<?php foreach ($chapters as $chapter) : ?>
 							<li class="chapter-item" data-id="<?php echo esc_attr($chapter->ID); ?>">
 								<span class="dashicons dashicons-menu"></span>
-								<a href="<?php echo get_edit_post_link($chapter->ID); ?>"><?php echo esc_html($chapter->post_title); ?></a>
+								<a href="<?php echo esc_url(get_edit_post_link($chapter->ID)); ?>"><?php echo esc_html($chapter->post_title); ?></a>
 								<span class="chapter-actions">
-									<a href="<?php echo get_edit_post_link($chapter->ID); ?>" class="button button-small"><?php _e('Edit', 'total-book'); ?></a>
-									<a href="#" class="button button-small delete-chapter" data-id="<?php echo esc_attr($chapter->ID); ?>"><?php _e('Delete', 'total-book'); ?></a>
+									<a href="<?php echo esc_url(get_edit_post_link($chapter->ID)); ?>" class="button button-small"><?php esc_html_e('Edit', 'total-book'); ?></a>
+									<a href="#" class="button button-small delete-chapter" data-id="<?php echo esc_attr($chapter->ID); ?>"><?php esc_html_e('Delete', 'total-book'); ?></a>
 								</span>
 							</li>
 						<?php endforeach; ?>
 					</ul>
 				<?php else : ?>
-					<p class="no-chapters"><?php _e('No chapters added yet.', 'total-book'); ?></p>
+					<p class="no-chapters"><?php esc_html_e('No chapters added yet.', 'total-book'); ?></p>
 				<?php endif; ?>
 			</div>
 			
 			<div class="add-chapter-form">
-				<h4><?php _e('Add New Chapter', 'total-book'); ?></h4>
+				<h4><?php esc_html_e('Add New Chapter', 'total-book'); ?></h4>
 				<p>
 					<input type="text" id="new_chapter_title" class="widefat" placeholder="<?php esc_attr_e('Chapter Title', 'total-book'); ?>">
 				</p>
 				<p>
-					<button type="button" class="button button-primary" id="add_chapter"><?php _e('Add Chapter', 'total-book'); ?></button>
+					<button type="button" class="button button-primary" id="add_chapter"><?php esc_html_e('Add Chapter', 'total-book'); ?></button>
 				</p>
 			</div>
 		</div>
@@ -281,8 +279,9 @@ Class TB_Book {
 			return;
 		}
 
-		// Verify that the nonce is valid
-		if (!wp_verify_nonce($_POST['book_meta_box_nonce'], 'book_meta_box')) {
+		// Sanitize and verify that the nonce is valid
+		$nonce = sanitize_text_field(wp_unslash($_POST['book_meta_box_nonce']));
+		if (!wp_verify_nonce($nonce, 'book_meta_box')) {
 			return;
 		}
 
@@ -298,7 +297,8 @@ Class TB_Book {
 
 		// Handle author taxonomy
 		if (isset($_POST['book_authors_tagify_hidden'])) {
-			$author_names = array_map('sanitize_text_field', explode(',', $_POST['book_authors_tagify_hidden']));
+			$author_input = sanitize_text_field(wp_unslash($_POST['book_authors_tagify_hidden']));
+			$author_names = array_map('sanitize_text_field', explode(',', $author_input));
 			$author_names = array_filter($author_names, 'strlen');
 			foreach ($author_names as $author_name) {
 				$term = term_exists($author_name, 'book_author');
@@ -325,14 +325,16 @@ Class TB_Book {
 
 		foreach ($fields as $field => $sanitize_callback) {
 			if (isset($_POST[$field])) {
-				$value = call_user_func($sanitize_callback, $_POST[$field]);
+				$raw_value = sanitize_text_field(wp_unslash($_POST[$field]));
+				$value = call_user_func($sanitize_callback, $raw_value);
 				update_post_meta($post_id, '_' . $field, $value);
 			}
 		}
 
 		// Save chapter order if it exists
 		if (isset($_POST['chapter_order'])) {
-			$chapter_order = json_decode(stripslashes($_POST['chapter_order']), true);
+			$order_input = sanitize_text_field(wp_unslash($_POST['chapter_order']));
+			$chapter_order = json_decode($order_input, true);
 			if (is_array($chapter_order)) {
 				foreach ($chapter_order as $position => $chapter_id) {
 					wp_update_post(array(
@@ -366,8 +368,12 @@ Class TB_Book {
 	public function ajax_add_chapter() {
 		check_ajax_referer('total_book_nonce', 'nonce');
 
-		$book_id = intval($_POST['book_id']);
-		$title = sanitize_text_field($_POST['title']);
+		if (!isset($_POST['book_id']) || !isset($_POST['title'])) {
+			wp_send_json_error('Missing required data');
+		}
+
+		$book_id = intval(wp_unslash($_POST['book_id']));
+		$title = sanitize_text_field(wp_unslash($_POST['title']));
 
 		if (!$book_id || !$title) {
 			wp_send_json_error('Invalid data');
@@ -394,7 +400,11 @@ Class TB_Book {
 	public function ajax_delete_chapter() {
 		check_ajax_referer('total_book_nonce', 'nonce');
 
-		$chapter_id = intval($_POST['chapter_id']);
+		if (!isset($_POST['chapter_id'])) {
+			wp_send_json_error('Missing chapter ID');
+		}
+
+		$chapter_id = intval(wp_unslash($_POST['chapter_id']));
 		if (!$chapter_id) {
 			wp_send_json_error('Invalid chapter ID');
 		}
@@ -410,7 +420,12 @@ Class TB_Book {
 	public function ajax_update_chapter_order() {
 		check_ajax_referer('total_book_nonce', 'nonce');
 
-		$order = json_decode(stripslashes($_POST['order']), true);
+		if (!isset($_POST['order'])) {
+			wp_send_json_error('Missing order data');
+		}
+
+		$order_input = sanitize_text_field(wp_unslash($_POST['order']));
+		$order = json_decode($order_input, true);
 		if (!is_array($order)) {
 			wp_send_json_error('Invalid order data');
 		}

@@ -79,14 +79,14 @@ Class TB_Settings {
     }
 
     public function render_section_info() {
-        echo '<p>' . __('Configure how your books are displayed on the front end.', 'total-book') . '</p>';
+        echo '<p>' . esc_html__('Configure how your books are displayed on the front end.', 'total-book') . '</p>';
     }
 
     public function render_template_field() {
         $templates = $this->get_available_templates();
         $current = isset($this->options['template']) ? $this->options['template'] : 'default';
         ?>
-        <select name="<?php echo $this->option_name; ?>[template]" id="template">
+        <select name="<?php echo esc_attr($this->option_name); ?>[template]" id="template">
             <?php foreach ($templates as $key => $label) : ?>
                 <option value="<?php echo esc_attr($key); ?>" <?php selected($current, $key); ?>>
                     <?php echo esc_html($label); ?>
@@ -94,7 +94,7 @@ Class TB_Settings {
             <?php endforeach; ?>
         </select>
         <p class="description">
-            <?php _e('Select the template to use for displaying books.', 'total-book'); ?>
+            <?php esc_html_e('Select the template to use for displaying books.', 'total-book'); ?>
         </p>
         <?php
     }
@@ -106,18 +106,18 @@ Class TB_Settings {
         ?>
         <fieldset>
             <label>
-                <input type="checkbox" name="<?php echo $this->option_name; ?>[show_meta]" value="1" <?php checked($show_meta); ?>>
-                <?php _e('Show book metadata (author, ISBN, etc.)', 'total-book'); ?>
+                <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_meta]" value="1" <?php checked($show_meta); ?>>
+                <?php esc_html_e('Show book metadata (author, ISBN, etc.)', 'total-book'); ?>
             </label>
             <br>
             <label>
-                <input type="checkbox" name="<?php echo $this->option_name; ?>[show_toc]" value="1" <?php checked($show_toc); ?>>
-                <?php _e('Show table of contents', 'total-book'); ?>
+                <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_toc]" value="1" <?php checked($show_toc); ?>>
+                <?php esc_html_e('Show table of contents', 'total-book'); ?>
             </label>
             <br>
             <label>
-                <input type="checkbox" name="<?php echo $this->option_name; ?>[disable_auto_copyright]" value="1" <?php checked($disable_auto_copyright); ?>>
-                <?php _e('Disable automatic copyright notice (keep other metadata)', 'total-book'); ?>
+                <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[disable_auto_copyright]" value="1" <?php checked($disable_auto_copyright); ?>>
+                <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'total-book'); ?>
             </label>
         </fieldset>
         <?php

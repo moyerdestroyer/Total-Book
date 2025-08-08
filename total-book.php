@@ -2,11 +2,13 @@
 
 /*
 Plugin Name: Total Book
-Description: A Book plugin for easily uploading books into a searchable, readable format for the web.
+Description: A Book plugin for hosting books on your website.
 Version: 1.0
 Author: Ryan Moyer
 License: GPLv2 or later
-
+Tested up to: 6.8
+Requires PHP: 7.4
+Stable tag: 1.0
 */
 
 // Prevent direct access to this file
@@ -42,24 +44,30 @@ Class Total_Book_Plugin {
 	}
 
 	public function enqueue_admin_styles($hook) {
-		// Only load on book post type screens
+		// Only load on book and chapter post type screens
 		$screen = get_current_screen();
-		if ($screen->post_type === 'book') {
+		if ($screen->post_type === 'book' || $screen->post_type === 'chapter') {
 			wp_enqueue_style(
 				'total-book-admin',
 				plugin_dir_url(__FILE__) . 'CSS/book-admin.css',
 				array(),
 				'1.0.0'
 			);
-			
-			// Enqueue Select2 for enhanced dropdowns
+
 			wp_enqueue_style(
-				'select2',
-				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+				'total-book-tagify',
+				plugin_dir_url(__FILE__) . 'dist/tagify.css',
 				array(),
-				'4.1.0'
+				'1.0.0'
 			);
-			
+
+			wp_enqueue_script(
+				'total-book-tagify',
+				plugin_dir_url(__FILE__) . 'dist/tagify.js',
+				array('jquery'),
+				'1.0.0',
+				true
+			);
 			wp_enqueue_script(
 				'total-book-admin',
 				plugin_dir_url(__FILE__) . 'js/book-admin.js',
@@ -67,19 +75,16 @@ Class Total_Book_Plugin {
 				'1.0.0',
 				true
 			);
-			
-			// Enqueue Select2 JS
-			wp_enqueue_script(
-				'select2',
-				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
-				array('jquery'),
-				'4.1.0',
-				true
-			);
-			
+
 			wp_localize_script('total-book-admin', 'totalBookAdmin', array(
 				'ajaxurl' => admin_url('admin-ajax.php'),
-				'nonce' => wp_create_nonce('total_book_nonce')
+				'nonce' => wp_create_nonce('total_book_nonce'),
+				'messages' => array(
+					'selectBook' => __('Please select a book', 'total-book'),
+					'assigning' => __('Assigning...', 'total-book'),
+					'assign' => __('Assign', 'total-book'),
+					'assignFailed' => __('Failed to assign chapter', 'total-book')
+				)
 			));
 		}
 	}
@@ -142,34 +147,11 @@ Class Total_Book_Plugin {
 		
 		// Flush rewrite rules
 		flush_rewrite_rules();
-		
-		// Migrate legacy author fields to taxonomy
-		$this->migrate_legacy_authors();
 	}
 
 	public function deactivate() {
 		// Flush rewrite rules on deactivation
 		flush_rewrite_rules();
-	}
-
-	/**
-	 * Migrate legacy author fields to the new taxonomy system
-	 */
-	private function migrate_legacy_authors() {
-		// Only run migration if we haven't done it before
-		if (get_option('total_book_authors_migrated', false)) {
-			return;
-		}
-		
-		$migrated_count = TB_Book::migrate_legacy_authors();
-		
-		// Mark migration as complete
-		update_option('total_book_authors_migrated', true);
-		
-		// Log migration results
-		if ($migrated_count > 0) {
-			error_log("Total Book: Migrated {$migrated_count} books to use author taxonomy");
-		}
 	}
 }
 

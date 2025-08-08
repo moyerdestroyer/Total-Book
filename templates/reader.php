@@ -39,7 +39,7 @@ $book = get_post($book_id);
           <h3>Table of Contents</h3>
           <ul>
             <?php foreach ($chapters as $chapter): ?>
-              <li><a href="<?php echo get_permalink($chapter->ID); ?>"><?php echo esc_html($chapter->post_title); ?></a></li>
+              <li><a href="<?php echo esc_url(get_permalink($chapter->ID)); ?>"><?php echo esc_html($chapter->post_title); ?></a></li>
             <?php endforeach; ?>
           </ul>
         </div>
