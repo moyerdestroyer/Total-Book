@@ -9,11 +9,11 @@ jQuery(document).ready(function($) {
             });
             
             $.ajax({
-                url: totalBookAdmin.ajaxurl,
+                url: ttbpAdmin.ajaxurl,
                 type: 'POST',
                 data: {
-                    action: 'update_chapter_order',
-                    nonce: totalBookAdmin.nonce,
+                    action: 'ttbp_update_chapter_order',
+                    nonce: ttbpAdmin.nonce,
                     order: JSON.stringify(order)
                 },
                 success: function(response) {
@@ -34,11 +34,11 @@ jQuery(document).ready(function($) {
         }
 
         $.ajax({
-            url: totalBookAdmin.ajaxurl,
+            url: ttbpAdmin.ajaxurl,
             type: 'POST',
             data: {
-                action: 'add_chapter',
-                nonce: totalBookAdmin.nonce,
+                action: 'ttbp_add_chapter',
+                nonce: ttbpAdmin.nonce,
                 book_id: $('#post_ID').val(),
                 title: title
             },
@@ -77,11 +77,11 @@ jQuery(document).ready(function($) {
         var $chapter = $(this).closest('.chapter-item');
 
         $.ajax({
-            url: totalBookAdmin.ajaxurl,
+            url: ttbpAdmin.ajaxurl,
             type: 'POST',
             data: {
-                action: 'delete_chapter',
-                nonce: totalBookAdmin.nonce,
+                action: 'ttbp_delete_chapter',
+                nonce: ttbpAdmin.nonce,
                 chapter_id: chapterId
             },
             success: function(response) {
@@ -128,18 +128,18 @@ jQuery(document).ready(function($) {
         var bookId = $btn.closest('.assign-chapter-dropdown').find('.book-select').val();
 
         if (!bookId) {
-            alert(totalBookAdmin.messages.selectBook || 'Please select a book');
+            alert(ttbpAdmin.messages.selectBook || 'Please select a book');
             return;
         }
 
-        $btn.prop('disabled', true).text(totalBookAdmin.messages.assigning || 'Assigning...');
+        $btn.prop('disabled', true).text(ttbpAdmin.messages.assigning || 'Assigning...');
 
         $.ajax({
-            url: totalBookAdmin.ajaxurl,
+            url: ttbpAdmin.ajaxurl,
             type: 'POST',
             data: {
-                action: 'assign_chapter_to_book',
-                nonce: totalBookAdmin.nonce,
+                action: 'ttbp_assign_chapter_to_book',
+                nonce: ttbpAdmin.nonce,
                 chapter_id: chapterId,
                 book_id: bookId
             },
@@ -156,14 +156,14 @@ jQuery(document).ready(function($) {
                     // Show success message
                     alert(response.data.message);
                 } else {
-                    alert(totalBookAdmin.messages.assignFailed || 'Failed to assign chapter');
+                    alert(ttbpAdmin.messages.assignFailed || 'Failed to assign chapter');
                 }
             },
             error: function() {
-                alert(totalBookAdmin.messages.assignFailed || 'Failed to assign chapter');
+                alert(ttbpAdmin.messages.assignFailed || 'Failed to assign chapter');
             },
             complete: function() {
-                $btn.prop('disabled', false).text(totalBookAdmin.messages.assign || 'Assign');
+                $btn.prop('disabled', false).text(ttbpAdmin.messages.assign || 'Assign');
             }
         });
     });

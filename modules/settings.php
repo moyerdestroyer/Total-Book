@@ -3,13 +3,17 @@
  * Settings Submodule
  */
 
-Class TB_Settings {
+ if (!defined('ABSPATH')) {
+    exit;
+}
+
+Class TTBP_Settings {
     private $options;
-    private $option_name = 'total_book_settings';
+    private $option_name = 'ttbp_settings';
 
     public function __construct() {
-        add_action('admin_menu', array($this, 'add_settings_page'));
-        add_action('admin_init', array($this, 'register_settings'));
+        add_action('admin_menu', array($this, 'ttbp_add_settings_page'));
+        add_action('admin_init', array($this, 'ttbp_register_settings'));
         $this->options = get_option($this->option_name, array(
             'template' => 'default',
             'show_meta' => true,
@@ -18,49 +22,49 @@ Class TB_Settings {
         ));
     }
 
-    public function add_settings_page() {
+    public function ttbp_add_settings_page() {
         add_submenu_page(
-            'edit.php?post_type=book',
-            __('Total Book Settings', 'total-book'),
-            __('Settings', 'total-book'),
+            'edit.php?post_type=ttbp-book',
+            __('Total Book Settings', 'ttbp'),
+            __('Settings', 'ttbp'),
             'manage_options',
-            'total-book-settings',
-            array($this, 'render_settings_page')
+            'ttbp-settings',
+            array($this, 'ttbp_render_settings_page')
         );
     }
 
-    public function register_settings() {
+    public function ttbp_register_settings() {
         register_setting(
-            'total_book_settings',
+            'ttbp_settings',
             $this->option_name,
-            array($this, 'sanitize_settings')
+            array($this, 'ttbp_sanitize_settings')
         );
 
         add_settings_section(
-            'total_book_general',
-            __('General Settings', 'total-book'),
-            array($this, 'render_section_info'),
-            'total-book-settings'
+            'ttbp_general',
+            __('General Settings', 'ttbp'),
+            array($this, 'ttbp_render_section_info'),
+            'ttbp-settings'
         );
 
         add_settings_field(
             'template',
-            __('Book Template', 'total-book'),
-            array($this, 'render_template_field'),
-            'total-book-settings',
-            'total_book_general'
+            __('Book Template', 'ttbp'),
+            array($this, 'ttbp_render_template_field'),
+            'ttbp-settings',
+            'ttbp_general'
         );
 
         add_settings_field(
             'show_meta',
-            __('Display Options', 'total-book'),
-            array($this, 'render_display_options'),
-            'total-book-settings',
-            'total_book_general'
+            __('Display Options', 'ttbp'),
+            array($this, 'ttbp_render_display_options'),
+            'ttbp-settings',
+            'ttbp_general'
         );
     }
 
-    public function render_settings_page() {
+    public function ttbp_render_settings_page() {
         if (!current_user_can('manage_options')) {
             return;
         }
@@ -69,8 +73,8 @@ Class TB_Settings {
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             <form action="options.php" method="post">
                 <?php
-                settings_fields('total_book_settings');
-                do_settings_sections('total-book-settings');
+                settings_fields('ttbp_settings');
+                do_settings_sections('ttbp-settings');
                 submit_button();
                 ?>
             </form>
@@ -78,11 +82,11 @@ Class TB_Settings {
         <?php
     }
 
-    public function render_section_info() {
-        echo '<p>' . esc_html__('Configure how your books are displayed on the front end.', 'total-book') . '</p>';
+    public function ttbp_render_section_info() {
+        echo '<p>' . esc_html__('Configure how your books are displayed on the front end.', 'ttbp') . '</p>';
     }
 
-    public function render_template_field() {
+    public function ttbp_render_template_field() {
         $templates = $this->get_available_templates();
         $current = isset($this->options['template']) ? $this->options['template'] : 'default';
         ?>
@@ -94,12 +98,12 @@ Class TB_Settings {
             <?php endforeach; ?>
         </select>
         <p class="description">
-            <?php esc_html_e('Select the template to use for displaying books.', 'total-book'); ?>
+            <?php esc_html_e('Select the template to use for displaying books.', 'ttbp'); ?>
         </p>
         <?php
     }
 
-    public function render_display_options() {
+    public function ttbp_render_display_options() {
         $show_meta = isset($this->options['show_meta']) ? $this->options['show_meta'] : true;
         $show_toc = isset($this->options['show_toc']) ? $this->options['show_toc'] : true;
         $disable_auto_copyright = isset($this->options['disable_auto_copyright']) ? $this->options['disable_auto_copyright'] : false;
@@ -107,23 +111,23 @@ Class TB_Settings {
         <fieldset>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_meta]" value="1" <?php checked($show_meta); ?>>
-                <?php esc_html_e('Show book metadata (author, ISBN, etc.)', 'total-book'); ?>
+                <?php esc_html_e('Show book metadata (author, ISBN, etc.)', 'ttbp'); ?>
             </label>
             <br>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_toc]" value="1" <?php checked($show_toc); ?>>
-                <?php esc_html_e('Show table of contents', 'total-book'); ?>
+                <?php esc_html_e('Show table of contents', 'ttbp'); ?>
             </label>
             <br>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[disable_auto_copyright]" value="1" <?php checked($disable_auto_copyright); ?>>
-                <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'total-book'); ?>
+                <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'ttbp'); ?>
             </label>
         </fieldset>
         <?php
     }
 
-    public function sanitize_settings($input) {
+    public function ttbp_sanitize_settings($input) {
         $sanitized = array();
         
         // Sanitize template

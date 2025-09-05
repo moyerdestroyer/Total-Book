@@ -1,35 +1,45 @@
 /* Chapter Navigation */
 .chapter-navigation {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
     margin: 2rem 0;
     padding: 1rem;
     background: #f8f9fa;
     border-radius: 4px;
+    gap: 1rem;
 }
 
 .chapter-navigation a {
     text-decoration: none;
     color: #333;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1em;
     border-radius: 4px;
     transition: background-color 0.2s;
+    border: 1px solid #dee2e6;
+    height: 100%;
 }
 
 .chapter-navigation a:hover {
     background-color: #e9ecef;
 }
 
-.chapter-navigation .nav-prev,
+.chapter-navigation .nav-prev {
+    display: flex;
+    gap: 0.5rem;
+    justify-self: start;
+}
+
 .chapter-navigation .nav-next {
     display: flex;
-    align-items: center;
     gap: 0.5rem;
+    justify-self: end;
 }
 
 .chapter-navigation .nav-toc {
     font-weight: 500;
+    justify-self: center;
+    text-align: center;
 }
 
 /* Table of Contents */

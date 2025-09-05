@@ -4,17 +4,21 @@
  * Handles WordPress theme integration and navigation features
  */
 
-Class TB_Blog {
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+Class TTBP_Blog {
     public function __construct() {
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
-        add_filter('the_content', array($this, 'modify_content'));
-        add_action('wp_head', array($this, 'add_meta_tags'));
+        add_action('wp_enqueue_scripts', array($this, 'ttbp_enqueue_styles'));
+        add_filter('the_content', array($this, 'ttbp_modify_content'));
+        add_action('wp_head', array($this, 'ttbp_add_meta_tags'));
     }
 
-    public function enqueue_styles() {
-        if (is_singular('book') || is_singular('chapter')) {
+    public function ttbp_enqueue_styles() {
+        if (is_singular('ttbp-book') || is_singular('ttbp_chapter')) {
             wp_enqueue_style(
-                'total-book-blog',
+                'ttbp-blog',
                 plugin_dir_url(dirname(__FILE__)) . 'CSS/book-blog.css',
                 array(),
                 '1.0.0'
@@ -22,10 +26,10 @@ Class TB_Blog {
         }
     }
 
-    public function modify_content($content) {
-        if (is_singular('book')) {
+    public function ttbp_modify_content($content) {
+        if (is_singular('ttbp-book')) {
             // Get book meta
-            $authors = TB_Book::get_book_authors(get_the_ID());
+            $authors = TTBP_Book::get_book_authors(get_the_ID());
             $isbn = get_post_meta(get_the_ID(), '_book_isbn', true);
             $publication_date = get_post_meta(get_the_ID(), '_book_publication_date', true);
             $publisher = get_post_meta(get_the_ID(), '_book_publisher', true);
@@ -50,31 +54,31 @@ Class TB_Blog {
             if (!empty($authors) || $isbn || $publication_date || $publisher) {
                 $book_content .= '<div class="book-meta">';
                 if (!empty($authors)) {
-                    $author_links = TB_Book::get_book_authors_links(get_the_ID());
+                    $author_links = TTBP_Book::get_book_authors_links(get_the_ID());
                     $book_content .= sprintf(
                         '<div class="book-author"><strong>%s</strong> %s</div>',
-                        __('Author:', 'total-book'),
+                        __('Author:', 'ttbp'),
                         implode(', ', $author_links)
                     );
                 }
                 if ($isbn) {
                     $book_content .= sprintf(
                         '<div class="book-isbn"><strong>%s</strong> %s</div>',
-                        __('ISBN:', 'total-book'),
+                        __('ISBN:', 'ttbp'),
                         esc_html($isbn)
                     );
                 }
                 if ($publication_date) {
                     $book_content .= sprintf(
                         '<div class="book-publication-date"><strong>%s</strong> %s</div>',
-                        __('Publication Date:', 'total-book'),
+                        __('Publication Date:', 'ttbp'),
                         esc_html($publication_date)
                     );
                 }
                 if ($publisher) {
                     $book_content .= sprintf(
                         '<div class="book-publisher"><strong>%s</strong> %s</div>',
-                        __('Publisher:', 'total-book'),
+                        __('Publisher:', 'ttbp'),
                         esc_html($publisher)
                     );
                 }
@@ -98,13 +102,13 @@ Class TB_Blog {
             }
 
             // Add table of contents
-            $book_content .= $this->render_book_toc(get_the_ID());
+            $book_content .= $this->ttbp_render_book_toc(get_the_ID());
 
             // Add acknowledgments if exists
             if ($acknowledgments) {
                 $book_content .= sprintf(
                     '<div class="book-acknowledgments"><h2>%s</h2>%s</div>',
-                    __('Acknowledgments', 'total-book'),
+                    __('Acknowledgments', 'ttbp'),
                     wpautop(esc_html($acknowledgments))
                 );
             }
@@ -113,7 +117,7 @@ Class TB_Blog {
             if ($about_author) {
                 $book_content .= sprintf(
                     '<div class="book-about-author"><h2>%s</h2>%s</div>',
-                    __('About The Author', 'total-book'),
+                    __('About The Author', 'ttbp'),
                     wpautop(esc_html($about_author))
                 );
             }
@@ -121,22 +125,22 @@ Class TB_Blog {
             $book_content .= '</div>';
 
             return $book_content;
-        } elseif (is_singular('chapter')) {
+        } elseif (is_singular('ttbp_chapter')) {
             // Add chapter navigation
-            return $this->add_chapter_navigation($content);
+            return $this->ttbp_add_chapter_navigation($content);
         }
 
         return $content;
     }
 
-    public function add_chapter_navigation($content) {
+    public function ttbp_add_chapter_navigation($content) {
         // Get current chapter
         $current_chapter = get_post();
         $book_id = $current_chapter->post_parent;
         
         // Get all chapters for this book
         $chapters = get_posts(array(
-            'post_type' => 'chapter',
+            'post_type' => 'ttbp_chapter',
             'post_parent' => $book_id,
             'posts_per_page' => -1,
             'orderby' => 'menu_order',
@@ -164,7 +168,7 @@ Class TB_Blog {
         $navigation .= sprintf(
             '<a href="%s" class="nav-toc">%s</a>',
             get_permalink($book_id),
-            __('Table of Contents', 'total-book')
+            __('Table of Contents', 'ttbp')
         );
         
         if ($next_chapter) {
@@ -181,21 +185,21 @@ Class TB_Blog {
         return $navigation . $content . $navigation;
     }
 
-    public function add_meta_tags() {
-        if (is_singular('book') || is_singular('chapter')) {
+    public function ttbp_add_meta_tags() {
+        if (is_singular('ttbp-book') || is_singular('ttbp_chapter')) {
             $post = get_post();
             
             // Get book ID (either the post itself or its parent)
-            $book_id = is_singular('book') ? $post->ID : $post->post_parent;
+            $book_id = is_singular('ttbp-book') ? $post->ID : $post->post_parent;
             $book = get_post($book_id);
             
             // Get book meta
-            $authors = TB_Book::get_book_authors($book_id);
+            $authors = TTBP_Book::get_book_authors($book_id);
             $description = get_post_meta($book_id, '_book_description', true);
             
             // Output meta tags
             echo '<meta property="og:title" content="' . esc_attr($post->post_title) . '" />' . "\n";
-            echo '<meta property="og:type" content="' . (is_singular('book') ? 'book' : 'article') . '" />' . "\n";
+            echo '<meta property="og:type" content="' . (is_singular('ttbp-book') ? 'book' : 'article') . '" />' . "\n";
             echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '" />' . "\n";
             
             if ($description) {
@@ -209,9 +213,9 @@ Class TB_Blog {
         }
     }
 
-    public function render_book_toc($book_id) {
+    public function ttbp_render_book_toc($book_id) {
         $chapters = get_posts(array(
-            'post_type' => 'chapter',
+            'post_type' => 'ttbp_chapter',
             'post_parent' => $book_id,
             'posts_per_page' => -1,
             'orderby' => 'menu_order',
@@ -219,11 +223,11 @@ Class TB_Blog {
         ));
 
         if (empty($chapters)) {
-            return '<p>' . __('No chapters available.', 'total-book') . '</p>';
+            return '<p>' . __('No chapters available.', 'ttbp') . '</p>';
         }
 
         $output = '<div class="book-toc">';
-        $output .= '<h2>' . __('Table of Contents', 'total-book') . '</h2>';
+        $output .= '<h2>' . __('Table of Contents', 'ttbp') . '</h2>';
         $output .= '<ul class="chapter-list">';
 
         foreach ($chapters as $chapter) {

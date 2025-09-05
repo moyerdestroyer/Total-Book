@@ -57,7 +57,7 @@ export interface BookContent {
 
 export async function loadBook(bookId: string): Promise<BookContent> {
   try {
-    const response = await fetch(`/wp-json/total-book/v1/book/${bookId}`);
+    const response = await fetch(`/wp-json/ttbp/v1/book/${bookId}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

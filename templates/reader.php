@@ -3,6 +3,10 @@
  * Template for displaying the book reader
  */
 
+if (!defined('ABSPATH')) {
+  exit;
+}
+
 get_header();
 
 // Get the book id

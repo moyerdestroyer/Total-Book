@@ -20,38 +20,41 @@ class Total_Book_REST_API {
      */
     public function register_routes() {
         //generate epub file by id
-        register_rest_route('get_chapter_ids', '/(?P<id>\d+)', array(
+        register_rest_route('ttbp_get_chapter_ids', '/(?P<id>\d+)', array(
             'methods' => 'GET',
-            'callback' => array($this, 'get_chapter_ids'),
-            'permission_callback' => '__return_true',
+            'callback' => array($this, 'ttbp_get_chapter_ids'),
+            'permission_callback' => array($this, 'ttbp_logged_in_permission_callback'),
         ));
 
         // Get book categories
-        register_rest_route('total-book/v1', '/categories', array(
+        register_rest_route('ttbp/v1', '/categories', array(
             'methods' => 'GET',
-            'callback' => array($this, 'get_book_categories'),
-            'permission_callback' => '__return_true',
+            'callback' => array($this, 'ttbp_get_book_categories'),
+            'permission_callback' => array($this, 'ttbp_logged_in_permission_callback'),
         ));
 
         // Get complete book content
-        register_rest_route('total-book/v1', '/book/(?P<id>\d+)', array(
+        register_rest_route('ttbp/v1', '/book/(?P<id>\d+)', array(
             'methods' => 'GET',
-            'callback' => array($this, 'get_book_content'),
+            'callback' => array($this, 'ttbp_get_book_content'),
             'permission_callback' => '__return_true',
         ));
     }
+    public function ttbp_logged_in_permission_callback() {
+        return current_user_can('edit_posts');
+    }
 
-    public function get_chapter_ids($request) {
+    public function ttbp_get_chapter_ids($request) {
         $book_id = $request->get_param('id');
         //find all children of the book id
         $children = get_children(array(
             'post_parent' => $book_id,
-            'post_type' => 'chapter',
+            'post_type' => 'ttbp_chapter',
             'numberposts' => -1,
         ));
 
         // Get book categories
-        $categories = wp_get_post_terms($book_id, 'book_category', array('fields' => 'all'));
+        $categories = wp_get_post_terms($book_id, 'ttbp_book_category', array('fields' => 'all'));
         $category_data = array();
         foreach ($categories as $category) {
             $category_data[] = array(
@@ -69,9 +72,9 @@ class Total_Book_REST_API {
         return rest_ensure_response($response);
     }
 
-    public function get_book_categories($request) {
+    public function ttbp_get_book_categories($request) {
         $categories = get_terms(array(
-            'taxonomy' => 'book_category',
+            'taxonomy' => 'ttbp_book_category',
             'hide_empty' => false,
         ));
 
@@ -88,17 +91,17 @@ class Total_Book_REST_API {
         return rest_ensure_response($category_data);
     }
 
-    public function get_book_content($request) {
+    public function ttbp_get_book_content($request) {
         $book_id = $request->get_param('id');
         $book = get_post($book_id);
 
-        if (!$book || $book->post_type !== 'book') {
+        if (!$book || $book->post_type !== 'ttbp-book') {
             return new WP_Error('not_found', 'Book not found', array('status' => 404));
         }
 
         // Get all book meta with defaults
         $meta = array(
-            'author' => TB_Book::get_book_authors($book_id),
+            'author' => TTBP_Book::get_book_authors($book_id),
             'isbn' => get_post_meta($book_id, '_book_isbn', true) ?: '',
             'publication_date' => get_post_meta($book_id, '_book_publication_date', true) ?: '',
             'publisher' => get_post_meta($book_id, '_book_publisher', true) ?: '',
@@ -115,7 +118,7 @@ class Total_Book_REST_API {
         });
 
         // Get book categories
-        $categories = wp_get_post_terms($book_id, 'book_category', array('fields' => 'all'));
+        $categories = wp_get_post_terms($book_id, 'ttbp_book_category', array('fields' => 'all'));
         $category_data = array();
         foreach ($categories as $category) {
             $category_data[] = array(
@@ -141,7 +144,7 @@ class Total_Book_REST_API {
 
         // Get chapters
         $chapters = get_posts(array(
-            'post_type' => 'chapter',
+            'post_type' => 'ttbp_chapter',
             'post_parent' => $book_id,
             'posts_per_page' => -1,
             'orderby' => 'menu_order',
@@ -180,14 +183,14 @@ class Total_Book_REST_API {
         // Author Page
         if (!empty($meta['author'])) {
             $author_names = is_array($meta['author']) ? $meta['author'] : array($meta['author']);
-            $author_links = TB_Book::get_book_authors_links($book_id);
+            $author_links = TTBP_Book::get_book_authors_links($book_id);
             $content['author_page'] = apply_filters('tb_book_author_page_rest', array(
                 'author' => '<p class="book-author">By ' . implode(', ', $author_links) . '</p>',
             ), $book_id);
         }
 
         // Copyright Page
-        $settings = get_option('total_book_settings', array());
+        $settings = get_option('ttbp_settings', array());
         $disable_auto_copyright = isset($settings['disable_auto_copyright']) ? $settings['disable_auto_copyright'] : false;
         
         if (!empty($meta['publication_date']) || !empty($meta['author']) || !empty($meta['isbn']) || !empty($meta['publisher']) || !empty($meta['language'])) {

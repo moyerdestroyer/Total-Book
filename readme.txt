@@ -1,4 +1,4 @@
-=== Total Book ===
+=== The Total Book Plugin ===
 Contributors: ryanmoyer
 Tags: books, library
 Tested up to: 6.8
@@ -51,7 +51,7 @@ The e-reader source is in `src/` directory. Build output goes to `dist/` directo
 == Shortcode Options ==
 
 ### Single Book
-`[total_book id="123"]`
+`[ttbp_book]`
 
 **Parameters:**
 * `id` (required): Book post ID
@@ -60,20 +60,22 @@ The e-reader source is in `src/` directory. Build output goes to `dist/` directo
 * `show_description` (optional): Show description (true/false, default: true)
 
 ### Book List
-`[total_books]`
+`[ttbp_books]`
 
 **Parameters:**
 * `category` (optional): Filter by category slug(s)
 * `limit` (optional): Number of books (default: 10)
 * `orderby` (optional): Sort by (title, date, menu_order, default: title)
 * `order` (optional): Sort order (ASC/DESC, default: ASC)
+* `show_meta` (optional): Show metadata (true/false, default: true)
+* `show_excerpt` (optional): Show excerpt (true/false, default: true)
 * `columns` (optional): Grid columns (1-6, default: 3)
 
 ### Examples
 ```
-[total_book id="123" show_meta="true"]
-[total_books category="fiction" limit="6" columns="2"]
-[total_books orderby="date" order="DESC" limit="5"]
+[ttbp_book id="123" show_meta="true"]
+[ttbp_books category="fiction" limit="6" columns="2"]
+[ttbp_books orderby="date" order="DESC" limit="5"]
 ```
 
 == Changelog ==

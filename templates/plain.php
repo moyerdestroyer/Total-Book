@@ -3,6 +3,10 @@
  * Plain template for displaying a book
  */
 
+ if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Get book meta
 $author = get_post_meta(get_the_ID(), '_book_author', true);
 $isbn = get_post_meta(get_the_ID(), '_book_isbn', true);
@@ -16,19 +20,19 @@ $about_author = get_post_meta(get_the_ID(), '_book_about_author', true);
 
 // Get chapters
 $chapters = get_posts(array(
-    'post_type' => 'chapter',
+    'post_type' => 'ttbp_chapter',
     'post_parent' => get_the_ID(),
     'posts_per_page' => -1,
     'orderby' => 'menu_order',
     'order' => 'ASC'
 ));
 // Get settings
-$settings = new TB_Settings();
+$settings = new TTBP_Settings();
 $show_meta = $settings->get_option('show_meta', true);
 $show_toc = $settings->get_option('show_toc', true);
 ?>
 
-<article id="book-<?php the_ID(); ?>" <?php post_class('total-book'); ?>>
+<article id="book-<?php the_ID(); ?>" <?php post_class('ttbp'); ?>>
     <header class="book-header">
         <h1 class="book-title"><?php the_title(); ?></h1>
         
@@ -40,28 +44,28 @@ $show_toc = $settings->get_option('show_toc', true);
             <div class="book-meta">
                 <?php if ($author) : ?>
                     <div class="book-author">
-                        <strong><?php esc_html_e('Author:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Author:', 'ttbp'); ?></strong>
                         <span><?php echo esc_html($author); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($isbn) : ?>
                     <div class="book-isbn">
-                        <strong><?php esc_html_e('ISBN:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('ISBN:', 'ttbp'); ?></strong>
                         <span><?php echo esc_html($isbn); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($publication_date) : ?>
                     <div class="book-publication-date">
-                        <strong><?php esc_html_e('Publication Date:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Publication Date:', 'ttbp'); ?></strong>
                         <span><?php echo esc_html($publication_date); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($publisher) : ?>
                     <div class="book-publisher">
-                        <strong><?php esc_html_e('Publisher:', 'total-book'); ?></strong>
+                        <strong><?php esc_html_e('Publisher:', 'ttbp'); ?></strong>
                         <span><?php echo esc_html($publisher); ?></span>
                     </div>
                 <?php endif; ?>
@@ -83,7 +87,7 @@ $show_toc = $settings->get_option('show_toc', true);
 
     <?php if ($show_toc && !empty($chapters)) : ?>
         <div class="book-toc">
-            <h2><?php esc_html_e('Table of Contents', 'total-book'); ?></h2>
+            <h2><?php esc_html_e('Table of Contents', 'ttbp'); ?></h2>
             <ul class="chapter-list">
                 <?php foreach ($chapters as $chapter) : ?>
                     <li class="chapter-item">
@@ -111,14 +115,14 @@ $show_toc = $settings->get_option('show_toc', true);
 
     <?php if ($acknowledgments) : ?>
         <div class="book-acknowledgments">
-            <h2><?php esc_html_e('Acknowledgments', 'total-book'); ?></h2>
+            <h2><?php esc_html_e('Acknowledgments', 'ttbp'); ?></h2>
             <?php echo wp_kses_post(wpautop($acknowledgments)); ?>
         </div>
     <?php endif; ?>
 
     <?php if ($about_author) : ?>
         <div class="book-about-author">
-            <h2><?php esc_html_e('About The Author', 'total-book'); ?></h2>
+            <h2><?php esc_html_e('About The Author', 'ttbp'); ?></h2>
             <?php echo wp_kses_post(wpautop($about_author)); ?>
         </div>
     <?php endif; ?>

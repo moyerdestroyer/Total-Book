@@ -163,12 +163,31 @@
     left: 0; right: 0; bottom: 0;
     background: linear-gradient(0deg, rgba(0,0,0,0.7) 80%, rgba(0,0,0,0.1) 100%);
     color: #fff;
-    padding: 16px 12px 10px 12px;
+    border-radius: 0;
     width: 100%;
     box-sizing: border-box;
     z-index: 2;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
+}
+
+.book-item .book-overlay-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s ease;
+    position: relative;
+    padding: 16px 12px 0 12px;
+}
+
+.book-item .book-overlay-link:hover {
+    opacity: 0.9;
+}
+
+.book-item .book-overlay-link .book-author-link {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
 }
 
 .book-item .book-title {
@@ -190,6 +209,7 @@
     text-overflow: ellipsis;
     white-space: normal;
     display: block;
+    padding: 0 12px 10px 12px;
 }
 
 .book-item .book-author-link:not(:last-child)::after {
