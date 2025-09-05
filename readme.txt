@@ -1,4 +1,4 @@
-=== The Total Book Plugin ===
+=== The Total Book Project ===
 Contributors: ryanmoyer
 Tags: books, library
 Tested up to: 6.8
@@ -31,7 +31,7 @@ Total Book transforms WordPress into a digital library platform. Features includ
 
 == Installation ==
 
-1. Upload `total-book` to `/wp-content/plugins/`
+1. Upload `the-total-book-project` to `/wp-content/plugins/`
 2. Activate via WordPress admin
 3. Go to 'Books' menu to create content
 4. Configure settings under 'Books > Settings'

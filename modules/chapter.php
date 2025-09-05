@@ -20,19 +20,19 @@ Class TTBP_Chapter {
 
 	public function ttbp_register_post_type() {
 		$labels = array(
-			'name'               => _x('Chapters', 'post type general name', 'ttbp'),
-			'singular_name'      => _x('Chapter', 'post type singular name', 'ttbp'),
-			'menu_name'          => _x('Chapters', 'admin menu', 'ttbp'),
-			'name_admin_bar'     => _x('Chapter', 'add new on admin bar', 'ttbp'),
-			'add_new'            => _x('Add New', 'chapter', 'ttbp'),
-			'add_new_item'       => __('Add New Chapter', 'ttbp'),
-			'new_item'           => __('New Chapter', 'ttbp'),
-			'edit_item'          => __('Edit Chapter', 'ttbp'),
-			'view_item'          => __('View Chapter', 'ttbp'),
-			'all_items'          => __('All Chapters', 'ttbp'),
-			'search_items'       => __('Search Chapters', 'ttbp'),
-			'not_found'          => __('No chapters found.', 'ttbp'),
-			'not_found_in_trash' => __('No chapters found in Trash.', 'ttbp')
+			'name'               => _x('Chapters', 'post type general name', 'the-total-book-project'),
+			'singular_name'      => _x('Chapter', 'post type singular name', 'the-total-book-project'),
+			'menu_name'          => _x('Chapters', 'admin menu', 'the-total-book-project'),
+			'name_admin_bar'     => _x('Chapter', 'add new on admin bar', 'the-total-book-project'),
+			'add_new'            => _x('Add New', 'chapter', 'the-total-book-project'),
+			'add_new_item'       => __('Add New Chapter', 'the-total-book-project'),
+			'new_item'           => __('New Chapter', 'the-total-book-project'),
+			'edit_item'          => __('Edit Chapter', 'the-total-book-project'),
+			'view_item'          => __('View Chapter', 'the-total-book-project'),
+			'all_items'          => __('All Chapters', 'the-total-book-project'),
+			'search_items'       => __('Search Chapters', 'the-total-book-project'),
+			'not_found'          => __('No chapters found.', 'the-total-book-project'),
+			'not_found_in_trash' => __('No chapters found in Trash.', 'the-total-book-project')
 		);
 
 		$args = array(
@@ -63,8 +63,8 @@ Class TTBP_Chapter {
 		foreach ($columns as $key => $value) {
 			$new_columns[$key] = $value;
 			if ($key === 'title') {
-				$new_columns['parent_book'] = __('Parent Book', 'ttbp');
-				$new_columns['chapter_position'] = __('Position', 'ttbp');
+				$new_columns['parent_book'] = __('Parent Book', 'the-total-book-project');
+				$new_columns['chapter_position'] = __('Position', 'the-total-book-project');
 			}
 		}
 		
@@ -85,10 +85,10 @@ Class TTBP_Chapter {
 				} else {
 					// Show assignment dropdown for orphaned chapters
 					echo '<div class="assign-chapter-container">';
-					echo '<button type="button" class="button button-small assign-chapter-btn" data-chapter-id="' . esc_attr($post_id) . '">' . esc_html__('Assign to Book', 'ttbp') . '</button>';
+					echo '<button type="button" class="button button-small assign-chapter-btn" data-chapter-id="' . esc_attr($post_id) . '">' . esc_html__('Assign to Book', 'the-total-book-project') . '</button>';
 					echo '<div class="assign-chapter-dropdown" style="display: none;">';
 					echo '<select class="book-select" data-chapter-id="' . esc_attr($post_id) . '">';
-					echo '<option value="">' . esc_html__('Select a book...', 'ttbp') . '</option>';
+					echo '<option value="">' . esc_html__('Select a book...', 'the-total-book-project') . '</option>';
 					
 					// Get all books
 					$books = get_posts(array(
@@ -103,8 +103,8 @@ Class TTBP_Chapter {
 					}
 					
 					echo '</select>';
-					echo '<button type="button" class="button button-primary assign-btn" data-chapter-id="' . esc_attr($post_id) . '">' . esc_html__('Assign', 'ttbp') . '</button>';
-					echo '<button type="button" class="button cancel-btn">' . esc_html__('Cancel', 'ttbp') . '</button>';
+					echo '<button type="button" class="button button-primary assign-btn" data-chapter-id="' . esc_attr($post_id) . '">' . esc_html__('Assign', 'the-total-book-project') . '</button>';
+					echo '<button type="button" class="button cancel-btn">' . esc_html__('Cancel', 'the-total-book-project') . '</button>';
 					echo '</div>';
 					echo '</div>';
 				}
@@ -189,7 +189,7 @@ Class TTBP_Chapter {
 		}
 		?>
 		<select name="parent_book">
-			<option value=""><?php esc_html_e('All Books', 'ttbp'); ?></option>
+			<option value=""><?php esc_html_e('All Books', 'the-total-book-project'); ?></option>
 			<?php foreach ($books as $book) : ?>
 				<option value="<?php echo esc_attr($book->ID); ?>" <?php selected($selected, $book->ID); ?>>
 					<?php echo esc_html($book->post_title); ?>
@@ -257,7 +257,7 @@ Class TTBP_Chapter {
 
 		wp_send_json_success(array(
 			// translators: %s is the book title
-			'message' => sprintf(__('Chapter assigned to "%s"', 'ttbp'), $book_title),
+			'message' => sprintf(__('Chapter assigned to "%s"', 'the-total-book-project'), $book_title),
 			'book_title' => $book_title,
 			'edit_link' => $edit_link,
 			'chapter_id' => $chapter_id

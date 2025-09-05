@@ -25,12 +25,12 @@ class Shortcodes {
 
         $book_id = intval($atts['id']);
         if (!$book_id) {
-            return '<p class="ttbp-error">' . __('Book ID is required.', 'ttbp') . '</p>';
+            return '<p class="ttbp-error">' . __('Book ID is required.', 'the-total-book-project') . '</p>';
         }
 
         $book = get_post($book_id);
         if (!$book || $book->post_type !== 'ttbp-book') {
-            return '<p class="ttbp-error">' . __('Book not found.', 'ttbp') . '</p>';
+            return '<p class="ttbp-error">' . __('Book not found.', 'the-total-book-project') . '</p>';
         }
 
         ob_start();
@@ -84,7 +84,7 @@ class Shortcodes {
         }
 
         if (empty($books)) {
-            return '<p class="ttbp-no-results">' . __('No books found.', 'ttbp') . '</p>';
+            return '<p class="ttbp-no-results">' . __('No books found.', 'the-total-book-project') . '</p>';
         }
 
         ob_start();
@@ -122,31 +122,31 @@ class Shortcodes {
                 <div class="book-meta">
                     <?php if (!empty($authors)) : ?>
                         <div class="book-author">
-                            <strong><?php esc_html_e('Author:', 'ttbp'); ?></strong> 
+                            <strong><?php esc_html_e('Author:', 'the-total-book-project'); ?></strong> 
                             <?php 
                             $author_links = TTBP_Book::get_book_authors_links($book_id);
-                            echo implode(', ', $author_links);
+                            echo wp_kses_post(implode(', ', $author_links));
                             ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($isbn) : ?>
                         <div class="book-isbn">
-                            <strong><?php esc_html_e('ISBN:', 'ttbp'); ?></strong> 
+                            <strong><?php esc_html_e('ISBN:', 'the-total-book-project'); ?></strong> 
                             <?php echo esc_html($isbn); ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($publication_date) : ?>
                         <div class="book-publication-date">
-                            <strong><?php esc_html_e('Publication Date:', 'ttbp'); ?></strong> 
+                            <strong><?php esc_html_e('Publication Date:', 'the-total-book-project'); ?></strong> 
                             <?php echo esc_html($publication_date); ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($publisher) : ?>
                         <div class="book-publisher">
-                            <strong><?php esc_html_e('Publisher:', 'ttbp'); ?></strong> 
+                            <strong><?php esc_html_e('Publisher:', 'the-total-book-project'); ?></strong> 
                             <?php echo esc_html($publisher); ?>
                         </div>
                     <?php endif; ?>
@@ -155,19 +155,19 @@ class Shortcodes {
 
             <?php if ($show_description && $description) : ?>
                 <div class="book-description">
-                    <?php echo wpautop($description); ?>
+                    <?php echo wp_kses_post(wpautop($description)); ?>
                 </div>
             <?php endif; ?>
 
             <?php if ($show_toc) : ?>
                 <div class="book-toc">
-                    <?php echo $this->ttbp_render_book_toc($book_id); ?>
+                    <?php echo wp_kses_post($this->ttbp_render_book_toc($book_id)); ?>
                 </div>
             <?php endif; ?>
 
             <div class="book-actions">
                 <a href="<?php echo esc_url(get_permalink($book_id)); ?>" class="button book-view-btn">
-                    <?php esc_html_e('View Book', 'ttbp'); ?>
+                    <?php esc_html_e('View Book', 'the-total-book-project'); ?>
                 </a>
             </div>
         </div>
@@ -204,8 +204,8 @@ class Shortcodes {
                                     <div class="book-title"><?php echo esc_html($book->post_title); ?></div>
                                     <div class="book-author">
                                         <?php
-                                        $author_links = TTBP_Book::get_book_authors_links($book->ID);
-                                        echo implode(', ', $author_links);
+                                        $authors = TTBP_Book::get_book_authors($book->ID);
+                                        echo esc_html(implode(', ', $authors));
                                         ?>
                                     </div>
                                 </a>
@@ -231,13 +231,13 @@ class Shortcodes {
         ));
 
         if (empty($chapters)) {
-            return '<p class="ttbp-no-chapters">' . __('No chapters available.', 'ttbp') . '</p>';
+            return '<p class="ttbp-no-chapters">' . __('No chapters available.', 'the-total-book-project') . '</p>';
         }
 
         ob_start();
         ?>
         <div class="ttbp-toc">
-            <h3><?php esc_html_e('Table of Contents', 'ttbp'); ?></h3>
+            <h3><?php esc_html_e('Table of Contents', 'the-total-book-project'); ?></h3>
             <ul class="chapter-list">
                 <?php foreach ($chapters as $index => $chapter) : ?>
                     <li class="chapter-item">

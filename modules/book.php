@@ -17,19 +17,19 @@ Class TTBP_Book {
 
 	public function ttbp_register_post_type() {
 		$labels = array(
-			'name'               => _x('Books', 'post type general name', 'ttbp'),
-			'singular_name'      => _x('Book', 'post type singular name', 'ttbp'),
-			'menu_name'          => _x('Books', 'admin menu', 'ttbp'),
-			'name_admin_bar'     => _x('Book', 'add new on admin bar', 'ttbp'),
-			'add_new'            => _x('Add New', 'book', 'ttbp'),
-			'add_new_item'       => __('Add New Book', 'ttbp'),
-			'new_item'           => __('New Book', 'ttbp'),
-			'edit_item'          => __('Edit Book', 'ttbp'),
-			'view_item'          => __('View Book', 'ttbp'),
-			'all_items'          => __('All Books', 'ttbp'),
-			'search_items'       => __('Search Books', 'ttbp'),
-			'not_found'          => __('No books found.', 'ttbp'),
-			'not_found_in_trash' => __('No books found in Trash.', 'ttbp')
+			'name'               => _x('Books', 'post type general name', 'the-total-book-project'),
+			'singular_name'      => _x('Book', 'post type singular name', 'the-total-book-project'),
+			'menu_name'          => _x('Books', 'admin menu', 'the-total-book-project'),
+			'name_admin_bar'     => _x('Book', 'add new on admin bar', 'the-total-book-project'),
+			'add_new'            => _x('Add New', 'book', 'the-total-book-project'),
+			'add_new_item'       => __('Add New Book', 'the-total-book-project'),
+			'new_item'           => __('New Book', 'the-total-book-project'),
+			'edit_item'          => __('Edit Book', 'the-total-book-project'),
+			'view_item'          => __('View Book', 'the-total-book-project'),
+			'all_items'          => __('All Books', 'the-total-book-project'),
+			'search_items'       => __('Search Books', 'the-total-book-project'),
+			'not_found'          => __('No books found.', 'the-total-book-project'),
+			'not_found_in_trash' => __('No books found in Trash.', 'the-total-book-project')
 		);
 
 		$args = array(
@@ -54,17 +54,17 @@ Class TTBP_Book {
 		
 		// Register Book Category Taxonomy
 		$category_labels = array(
-			'name'              => _x('Book Categories', 'taxonomy general name', 'ttbp'),
-			'singular_name'     => _x('Book Category', 'taxonomy singular name', 'ttbp'),
-			'search_items'      => __('Search Book Categories', 'ttbp'),
-			'all_items'         => __('All Book Categories', 'ttbp'),
-			'parent_item'       => __('Parent Book Category', 'ttbp'),
-			'parent_item_colon' => __('Parent Book Category:', 'ttbp'),
-			'edit_item'         => __('Edit Book Category', 'ttbp'),
-			'update_item'       => __('Update Book Category', 'ttbp'),
-			'add_new_item'      => __('Add New Book Category', 'ttbp'),
-			'new_item_name'     => __('New Book Category Name', 'ttbp'),
-			'menu_name'         => __('Categories', 'ttbp'),
+			'name'              => _x('Book Categories', 'taxonomy general name', 'the-total-book-project'),
+			'singular_name'     => _x('Book Category', 'taxonomy singular name', 'the-total-book-project'),
+			'search_items'      => __('Search Book Categories', 'the-total-book-project'),
+			'all_items'         => __('All Book Categories', 'the-total-book-project'),
+			'parent_item'       => __('Parent Book Category', 'the-total-book-project'),
+			'parent_item_colon' => __('Parent Book Category:', 'the-total-book-project'),
+			'edit_item'         => __('Edit Book Category', 'the-total-book-project'),
+			'update_item'       => __('Update Book Category', 'the-total-book-project'),
+			'add_new_item'      => __('Add New Book Category', 'the-total-book-project'),
+			'new_item_name'     => __('New Book Category Name', 'the-total-book-project'),
+			'menu_name'         => __('Categories', 'the-total-book-project'),
 		);
 
 		$category_args = array(
@@ -81,15 +81,15 @@ Class TTBP_Book {
 		
 		// Register Book Author Taxonomy
 		$author_labels = array(
-			'name'              => _x('Book Authors', 'taxonomy general name', 'ttbp'),
-			'singular_name'     => _x('Book Author', 'taxonomy singular name', 'ttbp'),
-			'search_items'      => __('Search Book Authors', 'ttbp'),
-			'all_items'         => __('All Book Authors', 'ttbp'),
-			'edit_item'         => __('Edit Book Author', 'ttbp'),
-			'update_item'       => __('Update Book Author', 'ttbp'),
-			'add_new_item'      => __('Add New Book Author', 'ttbp'),
-			'new_item_name'     => __('New Book Author Name', 'ttbp'),
-			'menu_name'         => __('Authors', 'ttbp'),
+			'name'              => _x('Book Authors', 'taxonomy general name', 'the-total-book-project'),
+			'singular_name'     => _x('Book Author', 'taxonomy singular name', 'the-total-book-project'),
+			'search_items'      => __('Search Book Authors', 'the-total-book-project'),
+			'all_items'         => __('All Book Authors', 'the-total-book-project'),
+			'edit_item'         => __('Edit Book Author', 'the-total-book-project'),
+			'update_item'       => __('Update Book Author', 'the-total-book-project'),
+			'add_new_item'      => __('Add New Book Author', 'the-total-book-project'),
+			'new_item_name'     => __('New Book Author Name', 'the-total-book-project'),
+			'menu_name'         => __('Authors', 'the-total-book-project'),
 		);
 
 		$author_args = array(
@@ -112,7 +112,7 @@ Class TTBP_Book {
 	public function ttbp_add_book_meta_boxes() {
 		add_meta_box(
 			'ttbp_book_details',
-			__('Book Details', 'ttbp'),
+			__('Book Details', 'the-total-book-project'),
 			array($this, 'ttbp_render_book_meta_box'),
 			'ttbp-book',
 			'normal',
@@ -121,7 +121,7 @@ Class TTBP_Book {
 
 		add_meta_box(
 			'ttbp_book_chapters',
-			__('Book Chapters', 'ttbp'),
+			__('Book Chapters', 'the-total-book-project'),
 			array($this, 'ttbp_render_chapters_meta_box'),
 			'ttbp-book',
 			'normal',
@@ -160,42 +160,42 @@ Class TTBP_Book {
 		?>
 		<div class="book-meta-fields">
 			<p>
-				<label for="book_subtitle"><?php esc_html_e('Subtitle', 'ttbp'); ?></label>
+				<label for="book_subtitle"><?php esc_html_e('Subtitle', 'the-total-book-project'); ?></label>
 				<input type="text" id="book_subtitle" name="book_subtitle" value="<?php echo esc_attr($subtitle); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_authors_tagify"><?php esc_html_e('Authors', 'ttbp'); ?> <span style="color: red;">*</span></label>
+				<label for="book_authors_tagify"><?php esc_html_e('Authors', 'the-total-book-project'); ?> <span style="color: red;">*</span></label>
 				<input id="book_authors_tagify" class="widefat" value="<?php echo esc_attr($current_author_names); ?>">
 				<p class="description">
-					<?php esc_html_e('Type an author name and press Enter or comma. Add as many as you like. Names can include spaces and punctuation.', 'ttbp'); ?>
+					<?php esc_html_e('Type an author name and press Enter or comma. Add as many as you like. Names can include spaces and punctuation.', 'the-total-book-project'); ?>
 				</p>
 			</p>
 			<p>
-				<label for="book_isbn"><?php esc_html_e('ISBN', 'ttbp'); ?></label>
+				<label for="book_isbn"><?php esc_html_e('ISBN', 'the-total-book-project'); ?></label>
 				<input type="text" id="book_isbn" name="book_isbn" value="<?php echo esc_attr($isbn); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_publication_date"><?php esc_html_e('Publication Date', 'ttbp'); ?></label>
+				<label for="book_publication_date"><?php esc_html_e('Publication Date', 'the-total-book-project'); ?></label>
 				<input type="date" id="book_publication_date" name="book_publication_date" value="<?php echo esc_attr($publication_date); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_publisher"><?php esc_html_e('Publisher', 'ttbp'); ?></label>
+				<label for="book_publisher"><?php esc_html_e('Publisher', 'the-total-book-project'); ?></label>
 				<input type="text" id="book_publisher" name="book_publisher" value="<?php echo esc_attr($publisher); ?>" class="widefat">
 			</p>
 			<p>
-				<label for="book_description"><?php esc_html_e('Description', 'ttbp'); ?></label>
+				<label for="book_description"><?php esc_html_e('Description', 'the-total-book-project'); ?></label>
 				<textarea id="book_description" name="book_description" class="widefat" rows="5"><?php echo esc_textarea($description); ?></textarea>
 			</p>
 			<p>
-				<label for="book_dedication"><?php esc_html_e('Dedication', 'ttbp'); ?></label>
+				<label for="book_dedication"><?php esc_html_e('Dedication', 'the-total-book-project'); ?></label>
 				<textarea id="book_dedication" name="book_dedication" class="widefat" rows="3"><?php echo esc_textarea($dedication); ?></textarea>
 			</p>
 			<p>
-				<label for="book_acknowledgments"><?php esc_html_e('Acknowledgments', 'ttbp'); ?></label>
+				<label for="book_acknowledgments"><?php esc_html_e('Acknowledgments', 'the-total-book-project'); ?></label>
 				<textarea id="book_acknowledgments" name="book_acknowledgments" class="widefat" rows="5"><?php echo esc_textarea($acknowledgments); ?></textarea>
 			</p>
 			<p>
-				<label for="book_about_author"><?php esc_html_e('About The Author', 'ttbp'); ?></label>
+				<label for="book_about_author"><?php esc_html_e('About The Author', 'the-total-book-project'); ?></label>
 				<textarea id="book_about_author" name="book_about_author" class="widefat" rows="5"><?php echo esc_textarea($about_author); ?></textarea>
 			</p>
 		</div>
@@ -207,14 +207,14 @@ Class TTBP_Book {
 				maxTags: 10,
 				trim: true,
 				duplicates: false,
-				placeholder: '<?php echo esc_js(__('Type author name and press Enter', 'ttbp')); ?>',
+				placeholder: '<?php echo esc_js(__('Type author name and press Enter', 'the-total-book-project')); ?>',
 			});
 
 			$('#post').on('submit', function(e) {
 				var tagData = tagify.value;
 				if (!tagData || tagData.length === 0) {
 					e.preventDefault();
-					alert('<?php echo esc_js(__('At least one author is required. Please add an author.', 'ttbp')); ?>');
+					alert('<?php echo esc_js(__('At least one author is required. Please add an author.', 'the-total-book-project')); ?>');
 					input.focus();
 					return false;
 				}
@@ -252,24 +252,24 @@ Class TTBP_Book {
 								<span class="dashicons dashicons-menu"></span>
 								<a href="<?php echo esc_url(get_edit_post_link($chapter->ID)); ?>"><?php echo esc_html($chapter->post_title); ?></a>
 								<span class="chapter-actions">
-									<a href="<?php echo esc_url(get_edit_post_link($chapter->ID)); ?>" class="button button-small"><?php esc_html_e('Edit', 'ttbp'); ?></a>
-									<a href="#" class="button button-small delete-chapter" data-id="<?php echo esc_attr($chapter->ID); ?>"><?php esc_html_e('Delete', 'ttbp'); ?></a>
+									<a href="<?php echo esc_url(get_edit_post_link($chapter->ID)); ?>" class="button button-small"><?php esc_html_e('Edit', 'the-total-book-project'); ?></a>
+									<a href="#" class="button button-small delete-chapter" data-id="<?php echo esc_attr($chapter->ID); ?>"><?php esc_html_e('Delete', 'the-total-book-project'); ?></a>
 								</span>
 							</li>
 						<?php endforeach; ?>
 					</ul>
 				<?php else : ?>
-					<p class="no-chapters"><?php esc_html_e('No chapters added yet.', 'ttbp'); ?></p>
+					<p class="no-chapters"><?php esc_html_e('No chapters added yet.', 'the-total-book-project'); ?></p>
 				<?php endif; ?>
 			</div>
 			
 			<div class="add-chapter-form">
-				<h4><?php esc_html_e('Add New Chapter', 'ttbp'); ?></h4>
+				<h4><?php esc_html_e('Add New Chapter', 'the-total-book-project'); ?></h4>
 				<p>
-					<input type="text" id="new_chapter_title" class="widefat" placeholder="<?php esc_attr_e('Chapter Title', 'ttbp'); ?>">
+					<input type="text" id="new_chapter_title" class="widefat" placeholder="<?php esc_attr_e('Chapter Title', 'the-total-book-project'); ?>">
 				</p>
 				<p>
-					<button type="button" class="button button-primary" id="add_chapter"><?php esc_html_e('Add Chapter', 'ttbp'); ?></button>
+					<button type="button" class="button button-primary" id="add_chapter"><?php esc_html_e('Add Chapter', 'the-total-book-project'); ?></button>
 				</p>
 			</div>
 		</div>

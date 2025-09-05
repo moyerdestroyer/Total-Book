@@ -1,8 +1,8 @@
 <?php
 
 /*
-Plugin Name: The Total Book Plugin
-Description: A Book plugin for hosting books on your website.
+Plugin Name: The Total Book Project
+Description: A Book plugin/add-on for hosting books on your website.
 Version: 1.0
 Author: Ryan Moyer
 License: GPLv2 or later
@@ -80,10 +80,10 @@ Class Total_Book_Plugin {
 				'ajaxurl' => admin_url('admin-ajax.php'),
 									'nonce' => wp_create_nonce('ttbp_nonce'),
 									'messages' => array(
-						'selectBook' => __('Please select a book', 'ttbp'),
-						'assigning' => __('Assigning...', 'ttbp'),
-						'assign' => __('Assign', 'ttbp'),
-						'assignFailed' => __('Failed to assign chapter', 'ttbp')
+						'selectBook' => __('Please select a book', 'the-total-book-project'),
+						'assigning' => __('Assigning...', 'the-total-book-project'),
+						'assign' => __('Assign', 'the-total-book-project'),
+						'assignFailed' => __('Failed to assign chapter', 'the-total-book-project')
 					)
 			));
 		}

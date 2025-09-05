@@ -25,8 +25,8 @@ Class TTBP_Settings {
     public function ttbp_add_settings_page() {
         add_submenu_page(
             'edit.php?post_type=ttbp-book',
-            __('Total Book Settings', 'ttbp'),
-            __('Settings', 'ttbp'),
+            __('Total Book Settings', 'the-total-book-project'),
+            __('Settings', 'the-total-book-project'),
             'manage_options',
             'ttbp-settings',
             array($this, 'ttbp_render_settings_page')
@@ -42,14 +42,14 @@ Class TTBP_Settings {
 
         add_settings_section(
             'ttbp_general',
-            __('General Settings', 'ttbp'),
+            __('General Settings', 'the-total-book-project'),
             array($this, 'ttbp_render_section_info'),
             'ttbp-settings'
         );
 
         add_settings_field(
             'template',
-            __('Book Template', 'ttbp'),
+            __('Book Template', 'the-total-book-project'),
             array($this, 'ttbp_render_template_field'),
             'ttbp-settings',
             'ttbp_general'
@@ -57,7 +57,7 @@ Class TTBP_Settings {
 
         add_settings_field(
             'show_meta',
-            __('Display Options', 'ttbp'),
+            __('Display Options', 'the-total-book-project'),
             array($this, 'ttbp_render_display_options'),
             'ttbp-settings',
             'ttbp_general'
@@ -83,7 +83,7 @@ Class TTBP_Settings {
     }
 
     public function ttbp_render_section_info() {
-        echo '<p>' . esc_html__('Configure how your books are displayed on the front end.', 'ttbp') . '</p>';
+        echo '<p>' . esc_html__('Configure how your books are displayed on the front end.', 'the-total-book-project') . '</p>';
     }
 
     public function ttbp_render_template_field() {
@@ -98,7 +98,7 @@ Class TTBP_Settings {
             <?php endforeach; ?>
         </select>
         <p class="description">
-            <?php esc_html_e('Select the template to use for displaying books.', 'ttbp'); ?>
+            <?php esc_html_e('Select the template to use for displaying books.', 'the-total-book-project'); ?>
         </p>
         <?php
     }
@@ -111,17 +111,17 @@ Class TTBP_Settings {
         <fieldset>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_meta]" value="1" <?php checked($show_meta); ?>>
-                <?php esc_html_e('Show book metadata (author, ISBN, etc.)', 'ttbp'); ?>
+                <?php esc_html_e('Show book metadata (author, ISBN, etc.)', 'the-total-book-project'); ?>
             </label>
             <br>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_toc]" value="1" <?php checked($show_toc); ?>>
-                <?php esc_html_e('Show table of contents', 'ttbp'); ?>
+                <?php esc_html_e('Show table of contents', 'the-total-book-project'); ?>
             </label>
             <br>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[disable_auto_copyright]" value="1" <?php checked($disable_auto_copyright); ?>>
-                <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'ttbp'); ?>
+                <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'the-total-book-project'); ?>
             </label>
         </fieldset>
         <?php

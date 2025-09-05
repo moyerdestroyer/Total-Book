@@ -57,28 +57,28 @@ Class TTBP_Blog {
                     $author_links = TTBP_Book::get_book_authors_links(get_the_ID());
                     $book_content .= sprintf(
                         '<div class="book-author"><strong>%s</strong> %s</div>',
-                        __('Author:', 'ttbp'),
+                        __('Author:', 'the-total-book-project'),
                         implode(', ', $author_links)
                     );
                 }
                 if ($isbn) {
                     $book_content .= sprintf(
                         '<div class="book-isbn"><strong>%s</strong> %s</div>',
-                        __('ISBN:', 'ttbp'),
+                        __('ISBN:', 'the-total-book-project'),
                         esc_html($isbn)
                     );
                 }
                 if ($publication_date) {
                     $book_content .= sprintf(
                         '<div class="book-publication-date"><strong>%s</strong> %s</div>',
-                        __('Publication Date:', 'ttbp'),
+                        __('Publication Date:', 'the-total-book-project'),
                         esc_html($publication_date)
                     );
                 }
                 if ($publisher) {
                     $book_content .= sprintf(
                         '<div class="book-publisher"><strong>%s</strong> %s</div>',
-                        __('Publisher:', 'ttbp'),
+                        __('Publisher:', 'the-total-book-project'),
                         esc_html($publisher)
                     );
                 }
@@ -108,7 +108,7 @@ Class TTBP_Blog {
             if ($acknowledgments) {
                 $book_content .= sprintf(
                     '<div class="book-acknowledgments"><h2>%s</h2>%s</div>',
-                    __('Acknowledgments', 'ttbp'),
+                    __('Acknowledgments', 'the-total-book-project'),
                     wpautop(esc_html($acknowledgments))
                 );
             }
@@ -117,7 +117,7 @@ Class TTBP_Blog {
             if ($about_author) {
                 $book_content .= sprintf(
                     '<div class="book-about-author"><h2>%s</h2>%s</div>',
-                    __('About The Author', 'ttbp'),
+                    __('About The Author', 'the-total-book-project'),
                     wpautop(esc_html($about_author))
                 );
             }
@@ -168,7 +168,7 @@ Class TTBP_Blog {
         $navigation .= sprintf(
             '<a href="%s" class="nav-toc">%s</a>',
             get_permalink($book_id),
-            __('Table of Contents', 'ttbp')
+            __('Table of Contents', 'the-total-book-project')
         );
         
         if ($next_chapter) {
@@ -223,11 +223,11 @@ Class TTBP_Blog {
         ));
 
         if (empty($chapters)) {
-            return '<p>' . __('No chapters available.', 'ttbp') . '</p>';
+            return '<p>' . __('No chapters available.', 'the-total-book-project') . '</p>';
         }
 
         $output = '<div class="book-toc">';
-        $output .= '<h2>' . __('Table of Contents', 'ttbp') . '</h2>';
+        $output .= '<h2>' . __('Table of Contents', 'the-total-book-project') . '</h2>';
         $output .= '<ul class="chapter-list">';
 
         foreach ($chapters as $chapter) {
