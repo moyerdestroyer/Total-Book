@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Shortcodes {
+class TTBP_Shortcodes {
     public function __construct() {
         add_shortcode('ttbp_book', array($this, 'ttbp_book_shortcode'));
         add_shortcode('ttbp_books', array($this, 'ttbp_books_list_shortcode'));
@@ -255,4 +255,4 @@ class Shortcodes {
 }
 
 // Initialize the shortcodes
-new Shortcodes();
+new TTBP_Shortcodes();

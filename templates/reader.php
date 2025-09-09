@@ -12,6 +12,28 @@ get_header();
 // Get the book id
 $book_id = get_the_ID();
 $book = get_post($book_id);
+
+// Get book meta data
+$subtitle = get_post_meta($book_id, '_book_subtitle', true);
+$description = get_post_meta($book_id, '_book_description', true);
+$isbn = get_post_meta($book_id, '_book_isbn', true);
+$publisher = get_post_meta($book_id, '_book_publisher', true);
+$publication_date = get_post_meta($book_id, '_book_publication_date', true);
+$authors = TTBP_Book::get_book_authors($book_id);
+$author = !empty($authors) ? implode(', ', $authors) : '';
+
+// Get chapters
+$chapters = get_posts(array(
+    'post_type' => 'ttbp_chapter',
+    'post_parent' => $book_id,
+    'posts_per_page' => -1,
+    'orderby' => 'menu_order',
+    'order' => 'ASC'
+));
+
+// Get categories
+$category_terms = wp_get_post_terms($book_id, 'ttbp_book_category', array('fields' => 'names'));
+$categories = !empty($category_terms) ? $category_terms : array();
 ?>
 
 <!-- Interactive Book Reader -->

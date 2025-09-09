@@ -167,4 +167,86 @@ jQuery(document).ready(function($) {
             }
         });
     });
-}); 
+
+    // Tagify functionality for book authors
+    var input = document.getElementById('book_authors_tagify');
+    if (input) {
+        var tagify = new Tagify(input, {
+            whitelist: [], // Will be populated via AJAX
+            maxTags: 10,
+            trim: true,
+            duplicates: false,
+            placeholder: ttbpAdmin.messages.authorPlaceholder || 'Type author name and press Enter',
+            dropdown: {
+                enabled: 1, // Show suggestions dropdown
+                maxItems: 10, // Maximum number of suggestions to show
+                classname: 'tagify-dropdown', // Custom class for styling
+                enabled: 1,
+                closeOnSelect: false // Keep dropdown open for multiple selections
+            },
+            enforceWhitelist: false, // Allow custom tags not in whitelist
+            editTags: 1, // Allow editing tags by clicking on them
+            transformTag: function(tagData) {
+                // Add count information if available
+                if (tagData.count) {
+                    tagData.title = tagData.value + ' (' + tagData.count + ' books)';
+                }
+                return tagData;
+            }
+        });
+
+        // Load initial authors for suggestions
+        $.ajax({
+            url: ttbpAdmin.ajaxurl,
+            type: 'GET',
+            data: {
+                action: 'ttbp_get_authors',
+                nonce: ttbpAdmin.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    tagify.settings.whitelist = response.data;
+                }
+            }
+        });
+
+        // Handle search input for dynamic suggestions
+        tagify.on('input', function(e) {
+            var value = e.detail.value;
+            if (value.length < 2) return; // Don't search for very short strings
+
+            $.ajax({
+                url: ttbpAdmin.ajaxurl,
+                type: 'GET',
+                data: {
+                    action: 'ttbp_get_authors',
+                    nonce: ttbpAdmin.nonce,
+                    search: value
+                },
+                success: function(response) {
+                    if (response.success) {
+                        tagify.settings.whitelist = response.data;
+                        tagify.dropdown.show.call(tagify, value); // Show dropdown with filtered results
+                    }
+                }
+            });
+        });
+
+        $('#post').on('submit', function(e) {
+            var tagData = tagify.value;
+            if (!tagData || tagData.length === 0) {
+                e.preventDefault();
+                alert(ttbpAdmin.messages.authorRequired || 'At least one author is required. Please add an author.');
+                input.focus();
+                return false;
+            }
+            // Before submit, set a hidden field with the author names (comma separated)
+            if ($('#book_authors_hidden').length === 0) {
+                $('<input>').attr({type: 'hidden', id: 'book_authors_hidden', name: 'book_authors_tagify_hidden'}).appendTo($(this));
+            }
+            $('#book_authors_hidden').val(tagData.map(function(tag){return tag.value;}).join(','));
+            // Remove name attribute from the visible input so only the hidden field is submitted
+            $('#book_authors_tagify').removeAttr('name');
+        });
+    }
+});

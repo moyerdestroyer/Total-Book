@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-Class Total_Book_Plugin {
+Class TTBP_Plugin {
 	public function __construct() {
 		require_once plugin_dir_path( __FILE__ ) . 'modules/book.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/chapter.php';
@@ -83,7 +83,9 @@ Class Total_Book_Plugin {
 						'selectBook' => __('Please select a book', 'the-total-book-project'),
 						'assigning' => __('Assigning...', 'the-total-book-project'),
 						'assign' => __('Assign', 'the-total-book-project'),
-						'assignFailed' => __('Failed to assign chapter', 'the-total-book-project')
+						'assignFailed' => __('Failed to assign chapter', 'the-total-book-project'),
+						'authorPlaceholder' => __('Type author name and press Enter', 'the-total-book-project'),
+						'authorRequired' => __('At least one author is required. Please add an author.', 'the-total-book-project')
 					)
 			));
 		}
@@ -155,4 +157,4 @@ Class Total_Book_Plugin {
 	}
 }
 
-$total_book = new Total_Book_Plugin();
+$total_book = new TTBP_Plugin();

@@ -12,6 +12,7 @@ Class TTBP_Book {
 		add_action('wp_ajax_ttbp_add_chapter', array($this, 'ttbp_ajax_add_chapter'));
 		add_action('wp_ajax_ttbp_delete_chapter', array($this, 'ttbp_ajax_delete_chapter'));
 		add_action('wp_ajax_ttbp_update_chapter_order', array($this, 'ttbp_ajax_update_chapter_order'));
+		add_action('wp_ajax_ttbp_get_authors', array($this, 'ttbp_ajax_get_authors'));
 		add_action('admin_notices', array($this, 'display_admin_notices'));
 	}
 
@@ -199,35 +200,6 @@ Class TTBP_Book {
 				<textarea id="book_about_author" name="book_about_author" class="widefat" rows="5"><?php echo esc_textarea($about_author); ?></textarea>
 			</p>
 		</div>
-		<script type="text/javascript">
-		jQuery(document).ready(function($) {
-			var input = document.getElementById('book_authors_tagify');
-			var tagify = new Tagify(input, {
-				whitelist: [], // Could be populated with $all_authors if desired
-				maxTags: 10,
-				trim: true,
-				duplicates: false,
-				placeholder: '<?php echo esc_js(__('Type author name and press Enter', 'the-total-book-project')); ?>',
-			});
-
-			$('#post').on('submit', function(e) {
-				var tagData = tagify.value;
-				if (!tagData || tagData.length === 0) {
-					e.preventDefault();
-					alert('<?php echo esc_js(__('At least one author is required. Please add an author.', 'the-total-book-project')); ?>');
-					input.focus();
-					return false;
-				}
-				// Before submit, set a hidden field with the author names (comma separated)
-				if ($('#book_authors_hidden').length === 0) {
-					$('<input>').attr({type: 'hidden', id: 'book_authors_hidden', name: 'book_authors_tagify_hidden'}).appendTo($(this));
-				}
-				$('#book_authors_hidden').val(tagData.map(function(tag){return tag.value;}).join(','));
-				// Remove name attribute from the visible input so only the hidden field is submitted
-				$('#book_authors_tagify').removeAttr('name');
-			});
-		});
-		</script>
 		<?php
 	}
 
@@ -443,6 +415,42 @@ Class TTBP_Book {
 		wp_send_json_success();
 	}
 
+	public function ttbp_ajax_get_authors() {
+		check_ajax_referer('ttbp_nonce', 'nonce');
+
+		$search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
+
+		$args = array(
+			'taxonomy' => 'ttbp_book_author',
+			'hide_empty' => false,
+			'orderby' => 'name',
+			'order' => 'ASC',
+			'number' => 20 // Limit results for performance
+		);
+
+		// Add search if provided
+		if (!empty($search)) {
+			$args['name__like'] = $search;
+		}
+
+		$authors = get_terms($args);
+
+		if (is_wp_error($authors)) {
+			wp_send_json_error('Failed to fetch authors');
+		}
+
+		$author_list = array();
+		foreach ($authors as $author) {
+			$author_list[] = array(
+				'value' => $author->name,
+				'title' => $author->name,
+				'count' => $author->count
+			);
+		}
+
+		wp_send_json_success($author_list);
+	}
+
 	/**
 	 * Get book authors (supports both taxonomy and legacy field)
 	 */
@@ -518,4 +526,4 @@ Class TTBP_Book {
 		return $migrated_count;
 	}
 }
-$tb_book = new TTBP_Book();
+$ttbp_book = new TTBP_Book();

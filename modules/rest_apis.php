@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Total_Book_REST_API {
+class TTBP_REST_API {
     /**
      * Initialize the REST API endpoints
      */
@@ -37,8 +37,11 @@ class Total_Book_REST_API {
         register_rest_route('ttbp/v1', '/book/(?P<id>\d+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'ttbp_get_book_content'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'ttbp_all_permission_callback'),
         ));
+    }
+    public function ttbp_all_permission_callback() {
+        return true;
     }
     public function ttbp_logged_in_permission_callback() {
         return current_user_can('edit_posts');
@@ -167,14 +170,14 @@ class Total_Book_REST_API {
 
         // Cover
         if (!empty($featured_image['url'])) {
-            $content['cover'] = apply_filters('tb_book_cover_rest', array(
+            $content['cover'] = apply_filters('ttbp_book_cover_rest', array(
                 'html' => '<img class="book-cover" src="' . esc_attr($featured_image['url']) . '" alt="' . esc_attr($book->post_title) . '" />',
             ), $book_id);
         }
 
         // Title Page
         if (!empty($book->post_title) || !empty($meta['subtitle'])) {
-            $content['title_page'] = apply_filters('tb_book_title_page_rest', array(
+            $content['title_page'] = apply_filters('ttbp_book_title_page_rest', array(
                 'html' => '<h1 class="book-title">' . esc_html($book->post_title) . '</h1>' .
                           (!empty($meta['subtitle']) ? '<h2 class="book-subtitle">' . esc_html($meta['subtitle']) . '</h2>' : ''),
             ), $book_id);
@@ -184,7 +187,7 @@ class Total_Book_REST_API {
         if (!empty($meta['author'])) {
             $author_names = is_array($meta['author']) ? $meta['author'] : array($meta['author']);
             $author_links = TTBP_Book::get_book_authors_links($book_id);
-            $content['author_page'] = apply_filters('tb_book_author_page_rest', array(
+            $content['author_page'] = apply_filters('ttbp_book_author_page_rest', array(
                 'author' => '<p class="book-author">By ' . implode(', ', $author_links) . '</p>',
             ), $book_id);
         }
@@ -198,7 +201,7 @@ class Total_Book_REST_API {
             $author_names = is_array($meta['author']) ? $meta['author'] : array($meta['author']);
             $first_author = !empty($author_names) ? $author_names[0] : '';
             
-            $content['copyright_page'] = apply_filters('tb_book_copyright_page_rest', array(
+            $content['copyright_page'] = apply_filters('ttbp_book_copyright_page_rest', array(
                 'html' => '<div class="book-copyright-page">' .
                     (!$disable_auto_copyright && !empty($first_author) ? '<p class="book-copyright">© ' . ($pub_date ? gmdate('Y', $pub_date) : '') . ' ' . esc_html($first_author) . '</p>' : '') .
                     (!empty($meta['isbn']) ? '<p class="book-isbn">ISBN: ' . esc_html($meta['isbn']) . '</p>' : '') .
@@ -211,14 +214,14 @@ class Total_Book_REST_API {
 
         // Dedication Page
         if (!empty($meta['dedication'])) {
-            $content['dedication_page'] = apply_filters('tb_book_dedication_rest', array(
+            $content['dedication_page'] = apply_filters('ttbp_book_dedication_rest', array(
                 'html' => '<p class="book-dedication">' . esc_html($meta['dedication']) . '</p>',
             ), $book_id);
         }
 
         // Table of Contents Page
         if (!empty($chapter_data)) {
-            $content['table_of_contents_page'] = apply_filters('tb_book_toc_rest', array(
+            $content['table_of_contents_page'] = apply_filters('ttbp_book_toc_rest', array(
                 'html' => '<h1 class="book-toc-title">Table of Contents</h1><ul class="book-toc-list">' . implode('', array_map(function($chapter) {
                     return '<li>' . esc_html($chapter['title']) . '</li>';
                 }, $chapter_data)) . '</ul>',
@@ -227,28 +230,28 @@ class Total_Book_REST_API {
 
         // Main Body (always included if chapters exist)
         if (!empty($chapter_data)) {
-            $content['main_body'] = apply_filters('tb_book_main_body_rest', array(
+            $content['main_body'] = apply_filters('ttbp_book_main_body_rest', array(
                 'chapters' => $chapter_data,
             ), $book_id);
         }
 
         // Acknowledgments Page
         if (!empty($meta['acknowledgments'])) {
-            $content['acknowledgments_page'] = apply_filters('tb_book_acknowledgments_rest', array(
+            $content['acknowledgments_page'] = apply_filters('ttbp_book_acknowledgments_rest', array(
                 'html' => '<h1 class="book-acknowledgments-title">Acknowledgments</h1><p class="book-acknowledgments">' . esc_html($meta['acknowledgments']) . '</p>',
             ), $book_id);
         }
 
         // About Author Page
         if (!empty($meta['about_author'])) {
-            $content['about_author_page'] = apply_filters('tb_book_about_author_rest', array(
+            $content['about_author_page'] = apply_filters('ttbp_book_about_author_rest', array(
                 'html' => '<h1 class="book-about-author-title">About the Author</h1><p class="book-about-author">' . esc_html($meta['about_author']) . '</p>',
             ), $book_id);
         }
 
         // Description Page
         if (!empty($meta['description'])) {
-            $content['description_page'] = apply_filters('tb_book_description_rest', array(
+            $content['description_page'] = apply_filters('ttbp_book_description_rest', array(
                 'html' => '<h1 class="book-description-title">Description</h1><p class="book-description">' . esc_html($meta['description']) . '</p>',
             ), $book_id);
         }
@@ -256,10 +259,10 @@ class Total_Book_REST_API {
         // Structure the book content
         $book_content = array(
             'id' => $book_id,
-            'title' => apply_filters('tb_book_title_rest', $book->post_title, $book_id),
-            'categories' => apply_filters('tb_book_categories_rest', $category_data, $book_id),
-            'image_url' => apply_filters('tb_book_image_url_rest', $featured_image, $book_id),
-            'table_of_contents' => apply_filters('tb_book_toc_rest', array_map(function($chapter) {
+            'title' => apply_filters('ttbp_book_title_rest', $book->post_title, $book_id),
+            'categories' => apply_filters('ttbp_book_categories_rest', $category_data, $book_id),
+            'image_url' => apply_filters('ttbp_book_image_url_rest', $featured_image, $book_id),
+            'table_of_contents' => apply_filters('ttbp_book_toc_rest', array_map(function($chapter) {
                 return array(
                     'id' => $chapter['id'],
                     'title' => $chapter['title'],
@@ -271,7 +274,7 @@ class Total_Book_REST_API {
         );
 
         // Allow filtering of the entire book content
-        $book_content = apply_filters('tb_book_content_rest', $book_content, $book_id);
+        $book_content = apply_filters('ttbp_book_content_rest', $book_content, $book_id);
 
         return rest_ensure_response($book_content);
     }
@@ -279,4 +282,4 @@ class Total_Book_REST_API {
 }
 
 // Initialize the REST API
-new Total_Book_REST_API(); 
+new TTBP_REST_API(); 
