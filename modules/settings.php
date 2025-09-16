@@ -134,6 +134,12 @@ Class TTBP_Settings {
         $templates = array_keys($this->get_available_templates());
         $sanitized['template'] = in_array($input['template'], $templates) ? $input['template'] : 'default';
         
+        // Check if template has changed and flush rewrite rules if needed
+        $current_template = isset($this->options['template']) ? $this->options['template'] : 'default';
+        if ($current_template !== $sanitized['template']) {
+            add_action('admin_init', array($this, 'ttbp_flush_rewrite_rules'));
+        }
+        
         // Sanitize checkboxes
         $sanitized['show_meta'] = isset($input['show_meta']) ? (bool) $input['show_meta'] : false;
         $sanitized['show_toc'] = isset($input['show_toc']) ? (bool) $input['show_toc'] : false;
@@ -162,4 +168,8 @@ Class TTBP_Settings {
     public function get_option($key, $default = null) {
         return isset($this->options[$key]) ? $this->options[$key] : $default;
     }
-} 
+    
+    public function ttbp_flush_rewrite_rules() {
+        flush_rewrite_rules();
+    }
+}

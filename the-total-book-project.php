@@ -17,6 +17,8 @@ if (!defined('ABSPATH')) {
 }
 
 Class TTBP_Plugin {
+	public $settings;
+	
 	public function __construct() {
 		require_once plugin_dir_path( __FILE__ ) . 'modules/book.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/chapter.php';
