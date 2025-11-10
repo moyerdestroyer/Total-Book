@@ -354,6 +354,11 @@ Class TTBP_Book {
 			wp_send_json_error('Invalid data');
 		}
 
+		// Check if user can edit the book
+		if (!current_user_can('edit_post', $book_id)) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
 		$chapter_id = wp_insert_post(array(
 			'post_title' => $title,
 			'post_type' => 'ttbp_chapter',
@@ -384,6 +389,11 @@ Class TTBP_Book {
 			wp_send_json_error('Invalid chapter ID');
 		}
 
+		// Check if user can delete the chapter
+		if (!current_user_can('delete_post', $chapter_id)) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
 		$result = wp_delete_post($chapter_id, true);
 		if (!$result) {
 			wp_send_json_error('Failed to delete chapter');
@@ -405,6 +415,19 @@ Class TTBP_Book {
 			wp_send_json_error('Invalid order data');
 		}
 
+		// Verify user can edit all chapters (check parent book for each)
+		foreach ($order as $position => $chapter_id) {
+			$chapter = get_post($chapter_id);
+			if (!$chapter || $chapter->post_type !== 'ttbp_chapter') {
+				wp_send_json_error('Invalid chapter ID');
+			}
+			
+			// Check if user can edit the parent book
+			if (!current_user_can('edit_post', $chapter->post_parent)) {
+				wp_send_json_error('Insufficient permissions');
+			}
+		}
+
 		foreach ($order as $position => $chapter_id) {
 			wp_update_post(array(
 				'ID' => $chapter_id,
@@ -417,6 +440,11 @@ Class TTBP_Book {
 
 	public function ttbp_ajax_get_authors() {
 		check_ajax_referer('ttbp_nonce', 'nonce');
+
+		// Check if user has capability to edit books
+		if (!current_user_can('edit_posts')) {
+			wp_send_json_error('Insufficient permissions');
+		}
 
 		$search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
 

@@ -2,7 +2,7 @@
 Contributors: ryanmoyer
 Tags: books, library
 Tested up to: 6.8
-Stable tag: 1.0
+Stable tag: 1.1
 Requires PHP: 7.4
 License: GPLv2 or later
 
@@ -32,21 +32,7 @@ Total Book transforms WordPress into a digital library platform. Features includ
 == Installation ==
 
 1. Upload `the-total-book-project` to `/wp-content/plugins/`
-2. Activate via WordPress admin
-3. Go to 'Books' menu to create content
-4. Configure settings under 'Books > Settings'
-
-**E-READER DEVELOPMENT**
-
-The e-reader component is built with React and TypeScript. To modify or develop the e-reader:
-
-1. Install dependencies: `npm install`
-2. Build/Webpack: `npm run build`
-
-**Requirements for e-reader development:**
-* Node.js 18+ and npm
-
-The e-reader source is in `src/` directory. Build output goes to `dist/` directory.
+2. Activate via plugin through the **Plugins** screen (**Plugins > Installed Plugins**).
 
 == Shortcode Options ==
 
@@ -78,7 +64,15 @@ The e-reader source is in `src/` directory. Build output goes to `dist/` directo
 [ttbp_books orderby="date" order="DESC" limit="5"]
 ```
 
+== Screenshots ==
+
+1. screenshot-1.png
+2. screenshot-2.png
+
 == Changelog ==
+
+= 1.1 =
+* Security fix: Corrected permissions for AJAX endpoints.
 
 = 1.0 =
 * Initial release

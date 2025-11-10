@@ -240,6 +240,16 @@ Class TTBP_Chapter {
 			wp_send_json_error('Invalid book');
 		}
 
+		// Check if user can edit the chapter
+		if (!current_user_can('edit_post', $chapter_id)) {
+			wp_send_json_error('Insufficient permissions to edit chapter');
+		}
+
+		// Check if user can edit the book (to assign chapter to it)
+		if (!current_user_can('edit_post', $book_id)) {
+			wp_send_json_error('Insufficient permissions to edit book');
+		}
+
 		// Update the chapter's parent
 		$result = wp_update_post(array(
 			'ID' => $chapter_id,
