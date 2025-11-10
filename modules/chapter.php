@@ -275,4 +275,4 @@ Class TTBP_Chapter {
 	}
 }
 
-$chapter = new TTBP_Chapter();
+$ttbp_chapter = new TTBP_Chapter();

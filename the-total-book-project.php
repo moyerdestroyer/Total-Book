@@ -3,7 +3,7 @@
 /*
 Plugin Name: The Total Book Project
 Description: A Book plugin/add-on for hosting books on your website.
-Version: 1.0
+Version: 1.1
 Author: Ryan Moyer
 License: GPLv2 or later
 Tested up to: 6.8
@@ -125,7 +125,7 @@ Class TTBP_Plugin {
 			
 			if ($book_id) {
 				$book_url = get_permalink($book_id);
-				wp_redirect($book_url);
+				wp_safe_redirect($book_url);
 				exit;
 			}
 		}
@@ -159,4 +159,4 @@ Class TTBP_Plugin {
 	}
 }
 
-$total_book = new TTBP_Plugin();
+$ttbp_total_book = new TTBP_Plugin();

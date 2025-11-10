@@ -160,7 +160,7 @@ class TTBP_REST_API {
                 'id' => $chapter->ID,
                 'title' => $chapter->post_title,
                 //prepend the title to the content
-                'html' => '<h1 class="book-chapter-title" id="chapter-' . $chapter->ID . '">' . $chapter->post_title . '</h1>' . apply_filters('the_content', $chapter->post_content),
+                'html' => '<h1 class="book-chapter-title" id="chapter-' . $chapter->ID . '">' . $chapter->post_title . '</h1>' . apply_filters('ttbp_the_content', $chapter->post_content),
                 'order' => $chapter->menu_order,
             );
         }
