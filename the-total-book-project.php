@@ -25,6 +25,7 @@ Class TTBP_Plugin {
 		require_once plugin_dir_path( __FILE__ ) . 'modules/settings.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/rest_apis.php';
 		require_once plugin_dir_path( __FILE__ ) . 'modules/shortcodes.php';
+		require_once plugin_dir_path( __FILE__ ) . 'modules/import.php';
 		
 		add_action('admin_enqueue_scripts', array($this, 'ttbp_enqueue_admin_styles'));
 		add_action('wp_enqueue_scripts', array($this, 'ttbp_enqueue_frontend_styles'));
