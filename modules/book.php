@@ -14,6 +14,34 @@ Class TTBP_Book {
 		add_action('wp_ajax_ttbp_update_chapter_order', array($this, 'ttbp_ajax_update_chapter_order'));
 		add_action('wp_ajax_ttbp_get_authors', array($this, 'ttbp_ajax_get_authors'));
 		add_action('admin_notices', array($this, 'display_admin_notices'));
+		add_action('wp_trash_post', array($this, 'ttbp_trash_book'));
+		add_action('untrash_post', array($this, 'ttbp_untrash_book'));
+	}
+
+	public function ttbp_untrash_book($post_id) {
+		if (get_post_type($post_id) === 'ttbp-book') {
+			$chapters = get_posts(array(
+				'post_type' => 'ttbp_chapter',
+				'post_parent' => $post_id,
+				'posts_per_page' => -1
+			));
+		}
+		foreach ($chapters as $chapter) {
+			wp_untrash_post($chapter->ID);
+		}
+	}
+
+	public function ttbp_trash_book($post_id) {
+		if (get_post_type($post_id) === 'ttbp-book') {
+			$chapters = get_posts(array(
+				'post_type' => 'ttbp_chapter',
+				'post_parent' => $post_id,
+				'posts_per_page' => -1
+			));
+			foreach ($chapters as $chapter) {
+				wp_trash_post($chapter->ID);
+			}
+		}
 	}
 
 	public function ttbp_register_post_type() {

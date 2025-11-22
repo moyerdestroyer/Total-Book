@@ -1,0 +1,302 @@
+.ttbp-import-wrap {
+    max-width: 1200px;
+}
+
+.ttbp-import-container {
+    margin-top: 20px;
+}
+
+/* Upload Area */
+.ttbp-upload-area {
+    border: 2px dashed #c3c4c7;
+    border-radius: 8px;
+    padding: 60px 20px;
+    text-align: center;
+    background: #f6f7f7;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.ttbp-upload-area:hover {
+    border-color: #2271b1;
+    background: #f0f6fc;
+}
+
+.ttbp-upload-area.dragover {
+    border-color: #2271b1;
+    background: #e5f0ff;
+    border-style: solid;
+}
+
+.ttbp-upload-content {
+    pointer-events: none;
+}
+
+.ttbp-upload-area.dragover .ttbp-upload-content {
+    pointer-events: none;
+}
+
+.ttbp-upload-content .dashicons {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #8c8f94;
+    margin-bottom: 20px;
+}
+
+.ttbp-upload-area:hover .ttbp-upload-content .dashicons,
+.ttbp-upload-area.dragover .ttbp-upload-content .dashicons {
+    color: #2271b1;
+}
+
+.ttbp-upload-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #1d2327;
+}
+
+.ttbp-upload-content p {
+    margin: 0 0 20px 0;
+    color: #646970;
+    font-size: 14px;
+}
+
+.ttbp-upload-content #ttbp-browse-btn {
+    pointer-events: all;
+}
+
+/* Progress Bar */
+.ttbp-upload-progress {
+    margin-top: 20px;
+}
+
+.ttbp-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #dcdcde;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.ttbp-progress-fill {
+    height: 100%;
+    background: #2271b1;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.ttbp-progress-text {
+    text-align: center;
+    color: #646970;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Metadata Preview */
+.ttbp-metadata-preview {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 8px;
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.ttbp-metadata-preview h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 24px;
+    color: #1d2327;
+    border-bottom: 1px solid #dcdcde;
+    padding-bottom: 15px;
+}
+
+.ttbp-preview-content {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.ttbp-preview-cover {
+    flex-shrink: 0;
+    width: 200px;
+    height: 300px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.ttbp-preview-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ttbp-no-cover {
+    color: #8c8f94;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+}
+
+.ttbp-preview-details {
+    flex: 1;
+}
+
+.ttbp-preview-field {
+    margin-bottom: 20px;
+}
+
+.ttbp-preview-field label {
+    display: block;
+    font-weight: 600;
+    color: #1d2327;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.ttbp-preview-value {
+    color: #646970;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 20px;
+}
+
+.ttbp-preview-value:empty::before {
+    content: '—';
+    color: #c3c4c7;
+}
+
+/* Chapters Preview */
+.ttbp-preview-chapters {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #dcdcde;
+}
+
+.ttbp-preview-chapters h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #1d2327;
+}
+
+.ttbp-chapters-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ttbp-chapters-preview-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ttbp-chapters-preview-list li {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.ttbp-chapters-preview-list li:last-child {
+    border-bottom: none;
+}
+
+.ttbp-chapters-preview-list li:hover {
+    background: #f6f7f7;
+}
+
+.ttbp-chapter-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 10px;
+}
+
+.ttbp-chapter-number {
+    font-weight: 600;
+    color: #646970;
+    margin-right: 0;
+    min-width: 30px;
+}
+
+.ttbp-chapter-title {
+    color: #1d2327;
+    font-weight: 500;
+    flex: 1;
+}
+
+.ttbp-delete-chapter-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    color: #8c8f94;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    line-height: 1;
+    margin-left: auto;
+}
+
+.ttbp-delete-chapter-btn:hover {
+    color: #b32d2e;
+    opacity: 1;
+}
+
+.ttbp-delete-chapter-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+}
+
+.ttbp-chapter-preview {
+    color: #646970;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-left: 40px;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.ttbp-no-chapters {
+    color: #646970;
+    font-style: italic;
+    padding: 10px 0;
+}
+
+/* Preview Actions */
+.ttbp-preview-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #dcdcde;
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .ttbp-preview-content {
+        flex-direction: column;
+    }
+    
+    .ttbp-preview-cover {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .ttbp-preview-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .ttbp-preview-actions .button {
+        width: 100%;
+    }
+}
+
