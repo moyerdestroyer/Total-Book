@@ -252,286 +252,273 @@ Class TTBP_Import {
      * Extract metadata from EPUB file
      */
     private function ttbp_extract_epub_metadata($epub_path, $file_id) {
-        // EPUB is a ZIP file
         if (!class_exists('ZipArchive')) {
             return new WP_Error('no_zip', __('PHP ZipArchive extension is required to import EPUB files.', 'the-total-book-project'));
         }
-        
+    
         $zip = new ZipArchive();
         if ($zip->open($epub_path) !== true) {
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Could not open archive.', 'the-total-book-project'));
         }
-        
+    
         $metadata = array(
-            'title' => '',
-            'subtitle' => '',
-            'authors' => array(),
-            'publisher' => '',
+            'title'            => '',
+            'subtitle'         => '',
+            'authors'          => array(),
+            'publisher'        => '',
             'publication_date' => '',
-            'isbn' => '',
-            'description' => '',
-            'dedication' => '',
-            'acknowledgments' => '',
-            'about_author' => '',
-            'cover_path' => '',
-            'chapters' => array()
+            'isbn'             => '',
+            'description'      => '',
+            'dedication'       => '',
+            'acknowledgments'  => '',
+            'about_author'     => '',
+            'cover_path'       => '',
+            'cover_image'      => '', // base64 data URL
+            'chapters'         => array()
         );
-        
-        // Find container.xml to locate OPF file
+    
+        // === Find OPF file ===
         $container_xml = $zip->getFromName('META-INF/container.xml');
         if (!$container_xml) {
             $zip->close();
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Missing container.xml.', 'the-total-book-project'));
         }
-        
-        // Parse container.xml to find OPF path
+    
         $container = simplexml_load_string($container_xml);
         if (!$container) {
             $zip->close();
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Could not parse container.xml.', 'the-total-book-project'));
         }
-        
+    
         $opf_path = '';
         foreach ($container->rootfiles->rootfile as $rootfile) {
             $opf_path = (string)$rootfile['full-path'];
             break;
         }
-        
+    
         if (empty($opf_path)) {
             $zip->close();
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Could not find OPF file.', 'the-total-book-project'));
         }
-        
-        // Get OPF directory
+    
         $opf_dir = dirname($opf_path);
-        if ($opf_dir === '.') {
-            $opf_dir = '';
-        } else {
-            $opf_dir .= '/';
-        }
-        
-        // Read OPF file
+        if ($opf_dir === '.') $opf_dir = '';
+        else $opf_dir .= '/';
+    
         $opf_content = $zip->getFromName($opf_path);
         if (!$opf_content) {
             $zip->close();
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Could not read OPF file.', 'the-total-book-project'));
         }
-        
-        // Suppress XML errors
+    
         libxml_use_internal_errors(true);
         $opf = simplexml_load_string($opf_content);
-        
         if (!$opf) {
             $zip->close();
             return new WP_Error('invalid_epub', __('Invalid EPUB file. Could not parse OPF file.', 'the-total-book-project'));
         }
-        
-        // Register namespaces
+    
         $opf->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
         $opf->registerXPathNamespace('opf', 'http://www.idpf.org/2007/opf');
-        
-        // Extract metadata
+    
+        // === Basic Dublin Core Metadata ===
         $metadata['title'] = (string)$opf->metadata->children('dc', true)->title;
-        
-        // Try to get subtitle from alternative title or other sources
-        $alt_titles = $opf->metadata->children('dc', true)->alternative;
-        if ($alt_titles) {
-            foreach ($alt_titles as $alt_title) {
-                $metadata['subtitle'] = (string)$alt_title;
-                break; // Use first alternative title as subtitle
-            }
-        }
-        
-        // Get authors
-        $authors = $opf->metadata->children('dc', true)->creator;
-        if ($authors) {
-            foreach ($authors as $author) {
-                $author_name = (string)$author;
-                if (!empty($author_name)) {
-                    $metadata['authors'][] = $author_name;
-                }
-            }
-        }
-        
-        // Get publisher
-        $metadata['publisher'] = (string)$opf->metadata->children('dc', true)->publisher;
-        
-        // Get publication date
-        $date = (string)$opf->metadata->children('dc', true)->date;
-        if (!empty($date)) {
-            // Try to parse date
-            $parsed_date = strtotime($date);
-            if ($parsed_date) {
-                $metadata['publication_date'] = date('Y-m-d', $parsed_date);
-            } else {
-                $metadata['publication_date'] = $date;
-            }
-        }
-        
-        // Get ISBN
-        $identifiers = $opf->metadata->children('dc', true)->identifier;
-        foreach ($identifiers as $identifier) {
-            $id_type = (string)$identifier['id'];
-            $id_value = (string)$identifier;
-            if (stripos($id_type, 'isbn') !== false || stripos($id_value, 'isbn') !== false) {
-                // Extract ISBN from value
-                preg_match('/\b\d{10,13}\b/', $id_value, $matches);
-                if (!empty($matches)) {
-                    $metadata['isbn'] = $matches[0];
-                } else {
-                    $metadata['isbn'] = $id_value;
-                }
+    
+        $alt_titles = $opf->metadata->children('dc', true)->title;
+        foreach ($alt_titles as $title) {
+            if ((string)$title->attributes()->{'opf:title-type'} === 'subtitle') {
+                $metadata['subtitle'] = (string)$title;
                 break;
             }
         }
-        
-        // Get description
-        $descriptions = $opf->metadata->children('dc', true)->description;
-        if ($descriptions) {
-            $desc_text = '';
-            foreach ($descriptions as $desc) {
-                $desc_text .= (string)$desc . ' ';
-            }
-            $metadata['description'] = trim($desc_text);
+    
+        foreach ($opf->metadata->children('dc', true)->creator as $creator) {
+            $name = trim((string)$creator);
+            if ($name) $metadata['authors'][] = $name;
         }
-        
-        // Note: Dedication, acknowledgments, and about_author are typically in the book content,
-        // not in metadata. We'll leave these empty for now as they would require parsing the full book content.
-        
-        // Extract cover image - improved logic
+    
+        $metadata['publisher'] = (string)$opf->metadata->children('dc', true)->publisher;
+    
+        $date = (string)$opf->metadata->children('dc', true)->date;
+        if ($date) {
+            $parsed = strtotime($date);
+            $metadata['publication_date'] = $parsed ? date('Y-m-d', $parsed) : $date;
+        }
+    
+        // ISBN
+        foreach ($opf->metadata->children('dc', true)->identifier as $identifier) {
+            $value = (string)$identifier;
+            $scheme = (string)$identifier['scheme'];
+            if (stripos($scheme, 'isbn') !== false || stripos($value, 'isbn') !== false) {
+                preg_match('/\b(?:97[89])?\d{9}(\d|X)\b/', $value, $m);
+                $metadata['isbn'] = $m ? str_replace('-', '', $m[0]) : preg_replace('/\D/', '', $value);
+                break;
+            }
+        }
+    
+        // Description
+        $desc = $opf->metadata->children('dc', true)->description;
+        if ($desc) {
+            $metadata['description'] = trim(implode(' ', array_map('strval', iterator_to_array($desc))));
+        }
+    
+        // === COVER EXTRACTION – THE GOOD STUFF ===
         $manifest_items = $opf->manifest->item;
-        $cover_id = '';
-        $cover_href = '';
-        
-        // Method 1: Check metadata meta tags for cover reference
-        $cover_meta = $opf->metadata->children('opf', true)->meta;
-        if ($cover_meta) {
-            foreach ($cover_meta as $meta) {
+        $cover_id = $cover_href = '';
+    
+        // Helper: resolve paths with ../ support
+        $resolve = function($href) use ($opf_dir) {
+            $path = $opf_dir . $href;
+            $parts = explode('/', $path);
+            $stack = [];
+            foreach ($parts as $part) {
+                if ($part === '' || $part === '.') continue;
+                if ($part === '..') {
+                    array_pop($stack);
+                } else {
+                    $stack[] = $part;
+                }
+            }
+            return implode('/', $stack);
+        };
+    
+        // Method 0: EPUB 3 – properties="cover-image" (MOST COMMON NOW)
+        foreach ($manifest_items as $item) {
+            $props = (string)$item['properties'];
+            if (strpos($props, 'cover-image') !== false) {
+                $cover_id = (string)$item['id'];
+                $cover_href = (string)$item['href'];
+                break;
+            }
+        }
+    
+        // Method 1: <meta name="cover" content="some-id">
+        if (!$cover_id) {
+            foreach ($opf->metadata->meta as $meta) {
                 if ((string)$meta['name'] === 'cover') {
                     $cover_id = (string)$meta['content'];
                     break;
                 }
             }
         }
-        
-        // Method 2: Check guide for cover reference
-        if (empty($cover_id) && isset($opf->guide)) {
-            $guide_items = $opf->guide->reference;
-            if ($guide_items) {
-                foreach ($guide_items as $ref) {
-                    if ((string)$ref['type'] === 'cover') {
-                        $cover_href = (string)$ref['href'];
-                        // Find the manifest item that matches this href
-                        foreach ($manifest_items as $item) {
-                            if ((string)$item['href'] === $cover_href) {
-                                $cover_id = (string)$item['id'];
-                                break 2;
-                            }
+    
+        // Method 2: <guide><reference type="cover">
+        if (!$cover_id && isset($opf->guide)) {
+            foreach ($opf->guide->reference as $ref) {
+                if ((string)$ref['type'] === 'cover') {
+                    $cover_href = (string)$ref['href'];
+                    foreach ($manifest_items as $item) {
+                        if ((string)$item['href'] === $cover_href) {
+                            $cover_id = (string)$item['id'];
+                            break 2;
                         }
                     }
                 }
             }
         }
-        
-        // Method 3: Look for items with "cover" in the ID
-        if (empty($cover_id)) {
+    
+        // Method 3: item ID contains "cover"
+        if (!$cover_id) {
             foreach ($manifest_items as $item) {
                 $id = (string)$item['id'];
-                $media_type = (string)$item['media-type'];
-                if (stripos($id, 'cover') !== false && stripos($media_type, 'image') !== false) {
+                $mt  = (string)$item['media-type'];
+                if (stripos($id, 'cover') !== false && stripos($mt, 'image') !== false) {
                     $cover_id = $id;
                     break;
                 }
             }
         }
-        
-        // Method 4: Look for common cover image filenames
-        if (empty($cover_id)) {
-            $common_cover_names = array('cover.jpg', 'cover.png', 'cover-image.jpg', 'cover-image.png', 'cover.xhtml');
-            foreach ($common_cover_names as $cover_name) {
+    
+        // Method 4: common filenames
+        if (!$cover_id) {
+            $common = ['cover.jpg', 'cover.jpeg', 'cover.png', 'cover.gif', 'cover.webp'];
+            foreach ($common as $name) {
                 foreach ($manifest_items as $item) {
-                    $href = (string)$item['href'];
-                    if (basename($href) === $cover_name) {
+                    if (strtolower(basename((string)$item['href'])) === $name) {
                         $cover_id = (string)$item['id'];
-                        $cover_href = $href;
+                        $cover_href = (string)$item['href'];
                         break 2;
                     }
                 }
             }
         }
-        
-        // Extract cover image if found
-        if (!empty($cover_id)) {
-            foreach ($manifest_items as $item) {
-                if ((string)$item['id'] === $cover_id) {
-                    $item_href = (string)$item['href'];
-                    $item_media_type = (string)$item['media-type'];
-                    $cover_data = null;
-                    $cover_mime_type = '';
-                    
-                    // If it's an HTML file, we need to extract the image from it
-                    if (stripos($item_media_type, 'html') !== false || stripos($item_media_type, 'xhtml') !== false) {
-                        $cover_html_path = $opf_dir . $item_href;
-                        $cover_html = $zip->getFromName($cover_html_path);
-                        
-                        if ($cover_html) {
-                            // Try to extract image from HTML
-                            if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $cover_html, $matches)) {
-                                $img_src = $matches[1];
-                                // Resolve relative path
-                                $img_path = $opf_dir . dirname($item_href) . '/' . $img_src;
-                                $img_path = str_replace('//', '/', $img_path);
-                                
-                                $cover_data = $zip->getFromName($img_path);
-                                if ($cover_data) {
-                                    $cover_ext = strtolower(pathinfo($img_src, PATHINFO_EXTENSION));
-                                    if (empty($cover_ext)) {
-                                        $cover_ext = 'jpg';
-                                    }
-                                    // Determine MIME type
-                                    $cover_mime_type = $this->ttbp_get_image_mime_type($cover_ext);
-                                }
-                            }
-                        }
-                    } else {
-                        // It's a direct image file
-                        $cover_href = $item_href;
-                        $cover_path = $opf_dir . $cover_href;
-                        $cover_data = $zip->getFromName($cover_path);
-                        
-                        if ($cover_data) {
-                            // Use the media type from manifest, or determine from extension
-                            if (!empty($item_media_type)) {
-                                $cover_mime_type = $item_media_type;
-                            } else {
-                                $cover_ext = strtolower(pathinfo($cover_href, PATHINFO_EXTENSION));
-                                $cover_mime_type = $this->ttbp_get_image_mime_type($cover_ext);
-                            }
+    
+        // Method 5: spine item with linear="no" (Apple Books, etc.)
+        if (!$cover_id && isset($opf->spine->itemref)) {
+            foreach ($opf->spine->itemref as $itemref) {
+                if ((string)$itemref['linear'] === 'no') {
+                    $idref = (string)$itemref['idref'];
+                    foreach ($manifest_items as $item) {
+                        if ((string)$item['id'] === $idref) {
+                            $cover_id = $idref;
+                            break 2;
                         }
                     }
-                    
-                    if ($cover_data) {
-                        // Save cover to temp directory for later use when creating book
-                        $cover_ext = $this->ttbp_get_extension_from_mime($cover_mime_type);
-                        $cover_filename = 'cover_' . $file_id . '.' . $cover_ext;
-                        $cover_file_path = $this->temp_dir . '/' . $cover_filename;
-                        file_put_contents($cover_file_path, $cover_data);
-                        $metadata['cover_path'] = $cover_file_path;
-                        
-                        // Also include as base64 data URL for preview
-                        $base64 = base64_encode($cover_data);
-                        $metadata['cover_image'] = 'data:' . $cover_mime_type . ';base64,' . $base64;
-                    }
-                    break;
                 }
             }
         }
-        
-        // Extract chapters
+    
+        // === Extract actual image ===
+        if ($cover_id) {
+            foreach ($manifest_items as $item) {
+                if ((string)$item['id'] !== $cover_id) continue;
+    
+                $item_href = (string)$item['href'];
+                $media_type = (string)$item['media-type'];
+    
+                $cover_data = null;
+                $mime = $media_type;
+    
+                if (stripos($media_type, 'html') !== false || stripos($media_type, 'xhtml') !== false) {
+                    // Cover is an HTML/XHTML page → extract <img>
+                    $html_path = $resolve($item_href);
+                    $html = $zip->getFromName($html_path);
+    
+                    if ($html && preg_match('/<img[^>]+src=["\']([^"\'>\s]+)["\']/i', $html, $m)) {
+                        $img_src = html_entity_decode($m[1], ENT_QUOTES);
+                        $img_path = $resolve(dirname($item_href) . '/' . $img_src);
+                        $cover_data = $zip->getFromName($img_path);
+    
+                        if ($cover_data) {
+                            $ext = strtolower(pathinfo($img_src, PATHINFO_EXTENSION)) ?: 'jpg';
+                            $mime = $this->ttbp_get_image_mime_type($ext);
+                        }
+                    }
+                } else {
+                    // Direct image file
+                    $image_path = $resolve($item_href);
+                    $cover_data = $zip->getFromName($image_path);
+    
+                    if (!$cover_data && $cover_href) {
+                        $image_path = $resolve($cover_href);
+                        $cover_data = $zip->getFromName($image_path);
+                    }
+    
+                    if ($cover_data && empty($mime)) {
+                        $ext = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
+                        $mime = $this->ttbp_get_image_mime_type($ext);
+                    }
+                }
+    
+                if ($cover_data) {
+                    $ext = $this->ttbp_get_extension_from_mime($mime) ?: 'jpg';
+                    $filename = 'cover_' . $file_id . '.' . $ext;
+                    $file_path = $this->temp_dir . '/' . $filename;
+    
+                    file_put_contents($file_path, $cover_data);
+    
+                    $metadata['cover_path']  = $file_path;
+                    $metadata['cover_image'] = 'data:' . $mime . ';base64,' . base64_encode($cover_data);
+                }
+    
+                break;
+            }
+        }
+    
+        // === Extract chapters ===
         $metadata['chapters'] = $this->ttbp_extract_chapters($zip, $opf, $opf_dir, $opf_path);
-        
+    
         $zip->close();
-        
         return $metadata;
     }
     
@@ -619,12 +606,24 @@ Class TTBP_Import {
             $this->ttbp_import_cover_image($book_id, $metadata['cover_path']);
         }
         
+        // Check if we should parse as blocks
+        $settings = new TTBP_Settings();
+        $parse_as_blocks = $settings->get_option('parse_import_as_blocks', false);
+        
         // Create chapters
         if (!empty($metadata['chapters']) && is_array($metadata['chapters'])) {
             foreach ($metadata['chapters'] as $chapter_data) {
+                // Convert content to blocks if setting is enabled
+                $chapter_content = $chapter_data['content'];
+                if ($parse_as_blocks) {
+                    $chapter_content = $this->ttbp_convert_html_to_blocks($chapter_content);
+                } else {
+                    $chapter_content = wp_kses_post($chapter_content);
+                }
+                
                 $chapter_id = wp_insert_post(array(
                     'post_title' => !empty($chapter_data['title']) ? sanitize_text_field($chapter_data['title']) : __('Chapter', 'the-total-book-project'),
-                    'post_content' => wp_kses_post($chapter_data['content']),
+                    'post_content' => $chapter_content,
                     'post_type' => 'ttbp_chapter',
                     'post_parent' => $book_id,
                     'post_status' => 'publish',
@@ -997,6 +996,259 @@ Class TTBP_Import {
         }
         
         wp_send_json_success();
+    }
+    
+    /**
+     * Convert HTML content to WordPress blocks
+     */
+    private function ttbp_convert_html_to_blocks($html) {
+        if (empty($html)) {
+            return '';
+        }
+        
+        // Check if DOMDocument is available
+        if (!class_exists('DOMDocument')) {
+            // Fallback: return sanitized HTML if DOMDocument is not available
+            return wp_kses_post($html);
+        }
+        
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        
+        // Load HTML with proper encoding - wrap in body tag if needed
+        $html_utf8 = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        
+        // Check if HTML already has body tag
+        if (stripos($html_utf8, '<body') === false) {
+            $html_utf8 = '<body>' . $html_utf8 . '</body>';
+        }
+        
+        @$dom->loadHTML('<?xml encoding="UTF-8">' . $html_utf8, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        
+        $blocks = array();
+        $body = $dom->getElementsByTagName('body')->item(0);
+        
+        if (!$body) {
+            // Try to get document element if no body
+            $doc_element = $dom->documentElement;
+            if ($doc_element) {
+                $body = $doc_element;
+            } else {
+                return wp_kses_post($html);
+            }
+        }
+        
+        // Process each child node
+        foreach ($body->childNodes as $node) {
+            $block = $this->ttbp_node_to_block($node, $dom);
+            if ($block) {
+                $blocks[] = $block;
+            }
+        }
+        
+        // Convert blocks array to block format string
+        return $this->ttbp_serialize_blocks($blocks);
+    }
+    
+    /**
+     * Convert a DOM node to a WordPress block
+     */
+    private function ttbp_node_to_block($node, $dom) {
+        if ($node->nodeType === XML_TEXT_NODE) {
+            $text = trim($node->textContent);
+            if (empty($text)) {
+                return null;
+            }
+            // Wrap text nodes in paragraph blocks - sanitize the text
+            $sanitized_text = wp_kses_post($text);
+            return array(
+                'blockName' => 'core/paragraph',
+                'attrs' => array(),
+                'innerContent' => array($sanitized_text),
+                'innerHTML' => '<p>' . $sanitized_text . '</p>'
+            );
+        }
+        
+        if ($node->nodeType !== XML_ELEMENT_NODE) {
+            return null;
+        }
+        
+        $tag_name = strtolower($node->tagName);
+        
+        switch ($tag_name) {
+            case 'p':
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                $sanitized_content = wp_kses_post($content);
+                return array(
+                    'blockName' => 'core/paragraph',
+                    'attrs' => array(),
+                    'innerContent' => array($sanitized_content),
+                    'innerHTML' => '<p>' . $sanitized_content . '</p>'
+                );
+                
+            case 'h1':
+            case 'h2':
+            case 'h3':
+            case 'h4':
+            case 'h5':
+            case 'h6':
+                $level = (int) substr($tag_name, 1);
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                $sanitized_content = wp_kses_post($content);
+                return array(
+                    'blockName' => 'core/heading',
+                    'attrs' => array('level' => $level),
+                    'innerContent' => array($sanitized_content),
+                    'innerHTML' => '<h' . $level . '>' . $sanitized_content . '</h' . $level . '>'
+                );
+                
+            case 'ul':
+                $list_items = $this->ttbp_extract_list_items($node, $dom, false);
+                $inner_content = array();
+                $inner_html_parts = array();
+                
+                foreach ($list_items as $item) {
+                    $sanitized_item = wp_kses_post($item['content']);
+                    $inner_content[] = $sanitized_item;
+                    $inner_html_parts[] = '<li>' . $sanitized_item . '</li>';
+                }
+                
+                return array(
+                    'blockName' => 'core/list',
+                    'attrs' => array('ordered' => false),
+                    'innerContent' => $inner_content,
+                    'innerHTML' => '<ul>' . implode('', $inner_html_parts) . '</ul>'
+                );
+                
+            case 'ol':
+                $list_items = $this->ttbp_extract_list_items($node, $dom, true);
+                $inner_content = array();
+                $inner_html_parts = array();
+                
+                foreach ($list_items as $item) {
+                    $sanitized_item = wp_kses_post($item['content']);
+                    $inner_content[] = $sanitized_item;
+                    $inner_html_parts[] = '<li>' . $sanitized_item . '</li>';
+                }
+                
+                return array(
+                    'blockName' => 'core/list',
+                    'attrs' => array('ordered' => true),
+                    'innerContent' => $inner_content,
+                    'innerHTML' => '<ol>' . implode('', $inner_html_parts) . '</ol>'
+                );
+                
+            case 'blockquote':
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                $sanitized_content = wp_kses_post($content);
+                return array(
+                    'blockName' => 'core/quote',
+                    'attrs' => array(),
+                    'innerContent' => array($sanitized_content),
+                    'innerHTML' => '<blockquote>' . $sanitized_content . '</blockquote>'
+                );
+                
+            case 'pre':
+            case 'code':
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                // For code blocks, preserve the content but escape HTML
+                $escaped_content = esc_html($content);
+                return array(
+                    'blockName' => 'core/code',
+                    'attrs' => array(),
+                    'innerContent' => array($escaped_content),
+                    'innerHTML' => '<pre><code>' . $escaped_content . '</code></pre>'
+                );
+                
+            case 'hr':
+                return array(
+                    'blockName' => 'core/separator',
+                    'attrs' => array(),
+                    'innerContent' => array(),
+                    'innerHTML' => '<hr class="wp-block-separator"/>'
+                );
+                
+            case 'div':
+            case 'section':
+            case 'article':
+                // For div/section/article, try to extract meaningful content
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                if (!empty(trim(strip_tags($content)))) {
+                    $sanitized_content = wp_kses_post($content);
+                    // Wrap in a paragraph block
+                    return array(
+                        'blockName' => 'core/paragraph',
+                        'attrs' => array(),
+                        'innerContent' => array($sanitized_content),
+                        'innerHTML' => '<p>' . $sanitized_content . '</p>'
+                    );
+                }
+                return null;
+                
+            default:
+                // For unknown elements, try to preserve as paragraph
+                $content = $this->ttbp_get_inner_html($node, $dom);
+                if (!empty(trim(strip_tags($content)))) {
+                    $sanitized_content = wp_kses_post($content);
+                    return array(
+                        'blockName' => 'core/paragraph',
+                        'attrs' => array(),
+                        'innerContent' => array($sanitized_content),
+                        'innerHTML' => '<p>' . $sanitized_content . '</p>'
+                    );
+                }
+                return null;
+        }
+    }
+    
+    /**
+     * Get inner HTML of a node
+     */
+    private function ttbp_get_inner_html($node, $dom) {
+        $inner_html = '';
+        foreach ($node->childNodes as $child) {
+            $inner_html .= $dom->saveHTML($child);
+        }
+        return trim($inner_html);
+    }
+    
+    /**
+     * Extract list items from ul/ol
+     */
+    private function ttbp_extract_list_items($list_node, $dom, $ordered) {
+        $items = array();
+        foreach ($list_node->getElementsByTagName('li') as $li) {
+            $content = $this->ttbp_get_inner_html($li, $dom);
+            $items[] = array('content' => $content);
+        }
+        return $items;
+    }
+    
+    /**
+     * Serialize blocks array to WordPress block format
+     */
+    private function ttbp_serialize_blocks($blocks) {
+        if (empty($blocks)) {
+            return '';
+        }
+        
+        $output = '';
+        foreach ($blocks as $block) {
+            if (empty($block['blockName'])) {
+                continue;
+            }
+            
+            $block_name = $block['blockName'];
+            $attrs = !empty($block['attrs']) ? json_encode($block['attrs']) : '{}';
+            $inner_html = isset($block['innerHTML']) ? $block['innerHTML'] : '';
+            
+            // WordPress block format: <!-- wp:block-name {"attrs":{}} -->
+            $output .= '<!-- wp:' . $block_name . ' ' . $attrs . ' -->' . "\n";
+            $output .= $inner_html . "\n";
+            $output .= '<!-- /wp:' . $block_name . ' -->' . "\n";
+        }
+        
+        return trim($output);
     }
     
     /**

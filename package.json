@@ -5,30 +5,37 @@
   "main": "webpack.widget.js",
   "scripts": {
     "dev": "webpack --config webpack.widget.js --watch",
-    "build": "webpack --config webpack.widget.js"
+    "dev:blocks": "npm run build --prefix blocks",
+
+    "build": "webpack --config webpack.widget.js",
+    "build:blocks": "npm run build --prefix blocks",
+
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:blocks\"",
+    "build:all": "concurrently \"npm run build\" \"npm run build:blocks\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "copy-webpack-plugin": "^13.0.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "concurrently": "^9.2.1",
+    "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
-    "mini-css-extract-plugin": "^2.9.2",
-    "sass": "^1.89.2",
-    "sass-loader": "^16.0.5",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.8.3",
-    "webpack": "^5.99.9",
+    "mini-css-extract-plugin": "^2.9.4",
+    "sass": "^1.94.2",
+    "sass-loader": "^16.0.6",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.103.0",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@yaireo/tagify": "^4.35.3",
-    "postcss-loader": "^8.1.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "scheduler": "^0.26.0"
+    "@yaireo/tagify": "^4.35.6",
+    "postcss-loader": "^8.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "scheduler": "^0.27.0"
   }
 }

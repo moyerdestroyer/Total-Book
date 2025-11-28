@@ -18,7 +18,8 @@ Class TTBP_Settings {
             'template' => 'default',
             'show_meta' => true,
             'show_toc' => true,
-            'disable_auto_copyright' => false
+            'disable_auto_copyright' => false,
+            'parse_import_as_blocks' => false
         ));
     }
 
@@ -59,6 +60,13 @@ Class TTBP_Settings {
             'show_meta',
             __('Display Options', 'the-total-book-project'),
             array($this, 'ttbp_render_display_options'),
+            'ttbp-settings',
+            'ttbp_general'
+        );
+        add_settings_field(
+            'parse_import_as_blocks',
+            __('Parse Import as Blocks', 'the-total-book-project'),
+            array($this, 'ttbp_render_parse_import_as_blocks_field'),
             'ttbp-settings',
             'ttbp_general'
         );
@@ -103,6 +111,16 @@ Class TTBP_Settings {
         <?php
     }
 
+    public function ttbp_render_parse_import_as_blocks_field() {
+        $parse_import_as_blocks = isset($this->options['parse_import_as_blocks']) ? $this->options['parse_import_as_blocks'] : false;
+        ?>
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[parse_import_as_blocks]" value="1" <?php checked($parse_import_as_blocks); ?>>
+            <?php esc_html_e('Parse imported EPUB files as WordPress blocks.', 'the-total-book-project'); ?>
+        </label>
+        <?php
+    }
+
     public function ttbp_render_display_options() {
         $show_meta = isset($this->options['show_meta']) ? $this->options['show_meta'] : true;
         $show_toc = isset($this->options['show_toc']) ? $this->options['show_toc'] : true;
@@ -144,6 +162,7 @@ Class TTBP_Settings {
         $sanitized['show_meta'] = isset($input['show_meta']) ? (bool) $input['show_meta'] : false;
         $sanitized['show_toc'] = isset($input['show_toc']) ? (bool) $input['show_toc'] : false;
         $sanitized['disable_auto_copyright'] = isset($input['disable_auto_copyright']) ? (bool) $input['disable_auto_copyright'] : false;
+        $sanitized['parse_import_as_blocks'] = isset($input['parse_import_as_blocks']) ? (bool) $input['parse_import_as_blocks'] : false;
         
         return $sanitized;
     }

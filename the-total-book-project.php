@@ -29,6 +29,7 @@ Class TTBP_Plugin {
 		
 		add_action('admin_enqueue_scripts', array($this, 'ttbp_enqueue_admin_styles'));
 		add_action('wp_enqueue_scripts', array($this, 'ttbp_enqueue_frontend_styles'));
+		add_action('init', array($this, 'ttbp_register_blocks'));
 		
 		// Register activation and deactivation hooks
 		register_activation_hook(__FILE__, array($this, 'ttbp_activate'));
@@ -157,6 +158,38 @@ Class TTBP_Plugin {
 	public function ttbp_deactivate() {
 		// Flush rewrite rules on deactivation
 		flush_rewrite_rules();
+	}
+
+	public function ttbp_register_blocks() {
+		// Register all blocks from dist folder
+		$blocks_dir = plugin_dir_path(__FILE__) . 'dist';
+		
+		if (!is_dir($blocks_dir)) {
+			return;
+		}
+		
+		// Scan for block directories
+		$blocks = glob($blocks_dir . '/*/block.json');
+		
+		foreach ($blocks as $block_json_path) {
+			$block_dir = dirname($block_json_path);
+			$block_name = basename($block_dir);
+			
+			// Register block using block.json
+			$args = array();
+			
+			// If render.php exists, use it as render callback
+			$render_php = $block_dir . '/render.php';
+			if (file_exists($render_php)) {
+				$args['render_callback'] = function($attributes, $content) use ($render_php) {
+					ob_start();
+					include $render_php;
+					return ob_get_clean();
+				};
+			}
+			
+			register_block_type($block_dir, $args);
+		}
 	}
 }
 
