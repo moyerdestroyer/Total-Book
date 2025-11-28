@@ -24,12 +24,17 @@ module.exports = {
     ...defaultConfig.output,
     path: path.resolve(__dirname, '..', 'dist'),
     filename: '[name]/index.js',
+    clean: false, // Don't clean - preserve other files in dist (book-reader, tagify, etc.)
   },
   plugins: [
-    // Replace the default MiniCssExtractPlugin with our custom one
-    ...defaultConfig.plugins.filter(
-      plugin => !(plugin instanceof MiniCssExtractPlugin)
-    ),
+    // Remove MiniCssExtractPlugin from default config (we'll add our own)
+    // Also filter out any CleanWebpackPlugin if present
+    ...defaultConfig.plugins.filter(plugin => {
+      if (plugin instanceof MiniCssExtractPlugin) return false;
+      // Check for CleanWebpackPlugin by constructor name (safer than requiring it)
+      if (plugin.constructor && plugin.constructor.name === 'CleanWebpackPlugin') return false;
+      return true;
+    }),
     new MiniCssExtractPlugin({
       filename: '[name]/style.css',
     }),

@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'book-reader.min.js',
-    clean: true,
+    clean: false, // Don't clean - preserve blocks subdirectories
   },
   plugins: [
     new MiniCssExtractPlugin({
