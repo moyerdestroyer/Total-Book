@@ -613,10 +613,64 @@ Class TTBP_Import {
         // Create chapters
         if (!empty($metadata['chapters']) && is_array($metadata['chapters'])) {
             foreach ($metadata['chapters'] as $chapter_data) {
-                // Convert content to blocks if setting is enabled
+                // Import images and get URL mapping
+                $image_url_map = array();
+                if (!empty($chapter_data['images']) && is_array($chapter_data['images'])) {
+                    foreach ($chapter_data['images'] as $image_info) {
+                        $attachment_id = $this->ttbp_import_chapter_image($book_id, $image_info['temp_path'], $image_info['filename']);
+                        if ($attachment_id && !is_wp_error($attachment_id)) {
+                            $image_url = wp_get_attachment_url($attachment_id);
+                            if ($image_url) {
+                                $image_url_map[$image_info['placeholder']] = array(
+                                    'url' => $image_url,
+                                    'id' => $attachment_id,
+                                    'alt' => $image_info['alt'],
+                                    'title' => $image_info['title']
+                                );
+                            }
+                        }
+                    }
+                }
+                
+                // Replace image placeholders with actual URLs
                 $chapter_content = $chapter_data['content'];
+                $url_based_image_map = array(); // Map for block conversion (URL as key)
+                
+                foreach ($image_url_map as $placeholder => $image_data) {
+                    // Create URL-based map for block conversion
+                    $url_based_image_map[$image_data['url']] = $image_data;
+                    
+                    if ($parse_as_blocks) {
+                        // For blocks, replace placeholder with URL
+                        $chapter_content = str_replace($placeholder, $image_data['url'], $chapter_content);
+                    } else {
+                        // Replace placeholder in img src
+                        $chapter_content = preg_replace(
+                            '/src=["\']' . preg_quote($placeholder, '/') . '["\']/',
+                            'src="' . esc_url($image_data['url']) . '"',
+                            $chapter_content
+                        );
+                        // Add alt and title attributes if they exist
+                        if (!empty($image_data['alt'])) {
+                            $chapter_content = preg_replace(
+                                '/(<img[^>]*src=["\']' . preg_quote($image_data['url'], '/') . '["\'][^>]*)>/',
+                                '$1 alt="' . esc_attr($image_data['alt']) . '">',
+                                $chapter_content
+                            );
+                        }
+                        if (!empty($image_data['title'])) {
+                            $chapter_content = preg_replace(
+                                '/(<img[^>]*src=["\']' . preg_quote($image_data['url'], '/') . '["\'][^>]*)>/',
+                                '$1 title="' . esc_attr($image_data['title']) . '">',
+                                $chapter_content
+                            );
+                        }
+                    }
+                }
+                
+                // Convert content to blocks if setting is enabled
                 if ($parse_as_blocks) {
-                    $chapter_content = $this->ttbp_convert_html_to_blocks($chapter_content);
+                    $chapter_content = $this->ttbp_convert_html_to_blocks($chapter_content, $url_based_image_map);
                 } else {
                     $chapter_content = wp_kses_post($chapter_content);
                 }
@@ -644,6 +698,19 @@ Class TTBP_Import {
         }
         if (!empty($metadata['cover_path']) && file_exists($metadata['cover_path'])) {
             @unlink($metadata['cover_path']);
+        }
+        
+        // Clean up chapter image temp files
+        if (!empty($metadata['chapters']) && is_array($metadata['chapters'])) {
+            foreach ($metadata['chapters'] as $chapter_data) {
+                if (!empty($chapter_data['images']) && is_array($chapter_data['images'])) {
+                    foreach ($chapter_data['images'] as $image_info) {
+                        if (!empty($image_info['temp_path']) && file_exists($image_info['temp_path'])) {
+                            @unlink($image_info['temp_path']);
+                        }
+                    }
+                }
+            }
         }
         
         // Delete transients
@@ -720,12 +787,17 @@ Class TTBP_Import {
             if ($chapter_content) {
                 // Get chapter title
                 $chapter_title = '';
+                $title_extracted_from_h1 = false;
+                
                 if (isset($chapter_titles[$idref])) {
                     $chapter_title = $chapter_titles[$idref];
                 } else {
-                    // Try to extract from HTML
-                    if (preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $chapter_content, $matches)) {
-                        $chapter_title = strip_tags($matches[1]);
+                    // Try to extract from HTML - prioritize h1, then title tag
+                    // Use the FIRST h1 found (not the last)
+                    if (preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $chapter_content, $matches, PREG_OFFSET_CAPTURE)) {
+                        // Get the first h1 match
+                        $chapter_title = strip_tags($matches[1][0]);
+                        $title_extracted_from_h1 = true;
                     } elseif (preg_match('/<title[^>]*>(.*?)<\/title>/is', $chapter_content, $matches)) {
                         $chapter_title = strip_tags($matches[1]);
                     } else {
@@ -733,12 +805,36 @@ Class TTBP_Import {
                     }
                 }
                 
-                // Clean up HTML content
-                $cleaned_content = $this->ttbp_clean_chapter_html($chapter_content, $opf_dir, $href, $zip);
+                // Remove h1 from content if it matches the chapter title
+                // This prevents the title from appearing twice (once as post title, once in content)
+                if (!empty($chapter_title)) {
+                    // Try to find and remove h1 that matches the chapter title
+                    if (preg_match_all('/<h1[^>]*>(.*?)<\/h1>/is', $chapter_content, $h1_matches, PREG_SET_ORDER)) {
+                        foreach ($h1_matches as $h1_match) {
+                            $h1_text = trim(strip_tags($h1_match[1]));
+                            // Remove h1 if it matches the chapter title (case-insensitive)
+                            if (strcasecmp(trim($h1_text), trim($chapter_title)) === 0) {
+                                $chapter_content = str_replace($h1_match[0], '', $chapter_content);
+                                break; // Only remove the first matching h1
+                            }
+                        }
+                    }
+                    
+                    // If we extracted from h1, also remove the first h1 as a fallback
+                    if ($title_extracted_from_h1) {
+                        $chapter_content = preg_replace('/<h1[^>]*>.*?<\/h1>/is', '', $chapter_content, 1);
+                    }
+                }
+                
+                // Clean up HTML content and extract images
+                $cleaned_data = $this->ttbp_clean_chapter_html($chapter_content, $opf_dir, $href, $zip);
+                $cleaned_content = $cleaned_data['html'];
+                $images = isset($cleaned_data['images']) ? $cleaned_data['images'] : array();
                 
                 $chapters[] = array(
                     'title' => trim($chapter_title),
                     'content' => $cleaned_content,
+                    'images' => $images,
                     'order' => $chapter_index
                 );
                 
@@ -774,6 +870,10 @@ Class TTBP_Import {
                         
                         foreach ($nav_links as $link) {
                             $href = (string)$link['href'];
+                            // Check if this points to a heading fragment (h1, h2, etc.)
+                            $is_h1_fragment = (stripos($href, '#') !== false && (stripos($href, 'h1') !== false || preg_match('/#[^#]*h1/i', $href)));
+                            $is_h2_fragment = (stripos($href, '#') !== false && (stripos($href, 'h2') !== false || preg_match('/#[^#]*h2/i', $href)));
+                            
                             // Resolve relative path
                             $full_href = $opf_dir . dirname($nav_href) . '/' . $href;
                             $full_href = str_replace('//', '/', $full_href);
@@ -781,10 +881,22 @@ Class TTBP_Import {
                             // Find manifest item that matches
                             foreach ($manifest_lookup as $id => $item_data) {
                                 $item_path = $opf_dir . $item_data['href'];
-                                if ($item_path === $full_href || basename($item_path) === basename($full_href)) {
+                                // Remove fragment for comparison
+                                $item_path_no_frag = preg_replace('/#.*$/', '', $item_path);
+                                $full_href_no_frag = preg_replace('/#.*$/', '', $full_href);
+                                
+                                if ($item_path_no_frag === $full_href_no_frag || basename($item_path_no_frag) === basename($full_href_no_frag)) {
                                     $title = trim((string)$link);
                                     if (!empty($title)) {
-                                        $titles[$id] = $title;
+                                        // Prefer h1 over h2, and first match over later matches
+                                        if (!isset($titles[$id])) {
+                                            // No title set yet, use this one
+                                            $titles[$id] = $title;
+                                        } elseif ($is_h1_fragment) {
+                                            // This is an h1 - always prefer h1 over h2 or other matches
+                                            $titles[$id] = $title;
+                                        }
+                                        // Otherwise, keep the existing title (first match wins, unless it's an h1)
                                     }
                                     break;
                                 }
@@ -816,16 +928,28 @@ Class TTBP_Import {
                             foreach ($nav_points as $nav_point) {
                                 $content = $nav_point->content;
                                 $src = (string)$content['src'];
-                                // Remove fragment identifier
-                                $src = preg_replace('/#.*$/', '', $src);
+                                
+                                // Check if this points to a heading fragment (h1, h2, etc.)
+                                $is_h1_fragment = (stripos($src, '#') !== false && (stripos($src, 'h1') !== false || preg_match('/#[^#]*h1/i', $src)));
+                                
+                                // Remove fragment identifier for comparison
+                                $src_no_frag = preg_replace('/#.*$/', '', $src);
                                 
                                 // Find manifest item
                                 foreach ($manifest_lookup as $id => $item_data) {
                                     $item_href = $item_data['href'];
-                                    if (basename($item_href) === basename($src) || $item_href === $src) {
+                                    if (basename($item_href) === basename($src_no_frag) || $item_href === $src_no_frag) {
                                         $title = trim((string)$nav_point->navLabel->text);
                                         if (!empty($title)) {
-                                            $titles[$id] = $title;
+                                            // Prefer h1 over h2, and first match over later matches
+                                            if (!isset($titles[$id])) {
+                                                // No title set yet, use this one
+                                                $titles[$id] = $title;
+                                            } elseif ($is_h1_fragment) {
+                                                // This is an h1 - always prefer h1 over h2 or other matches
+                                                $titles[$id] = $title;
+                                            }
+                                            // Otherwise, keep the existing title (first match wins, unless it's an h1)
                                         }
                                         break;
                                     }
@@ -842,12 +966,30 @@ Class TTBP_Import {
     }
     
     /**
-     * Clean up chapter HTML content
+     * Clean up chapter HTML content and extract images
      */
     private function ttbp_clean_chapter_html($html, $opf_dir, $chapter_href, $zip) {
+        $images = array();
+        
+        // Helper: resolve paths with ../ support
+        $resolve = function($href) use ($opf_dir) {
+            $path = $opf_dir . $href;
+            $parts = explode('/', $path);
+            $stack = [];
+            foreach ($parts as $part) {
+                if ($part === '' || $part === '.') continue;
+                if ($part === '..') {
+                    array_pop($stack);
+                } else {
+                    $stack[] = $part;
+                }
+            }
+            return implode('/', $stack);
+        };
+        
         // Check if DOMDocument is available
         if (!class_exists('DOMDocument')) {
-            // Fallback: basic regex cleanup
+            // Fallback: basic regex cleanup and image extraction
             $html = preg_replace('/^<\?xml[^>]*\?>/i', '', $html);
             $html = preg_replace('/<html[^>]*>/i', '', $html);
             $html = preg_replace('/<\/html>/i', '', $html);
@@ -856,15 +998,81 @@ Class TTBP_Import {
             $html = preg_replace('/<\/body>/i', '', $html);
             $html = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $html);
             $html = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $html);
-            return trim($html);
+            
+            // Extract images using regex
+            preg_match_all('/<img[^>]+src=["\']([^"\'>\s]+)["\']/i', $html, $img_matches);
+            if (!empty($img_matches[1])) {
+                foreach ($img_matches[1] as $img_src) {
+                    $img_src = html_entity_decode($img_src, ENT_QUOTES);
+                    
+                    // Clean image source: remove fragment identifiers (#) and query parameters (?)
+                    $img_src_clean = preg_replace('/[#?].*$/', '', $img_src);
+                    
+                    // Try multiple path resolutions
+                    $image_data = null;
+                    $img_path = null;
+                    $paths_to_try = array(
+                        $resolve(dirname($chapter_href) . '/' . $img_src_clean),
+                        $resolve($img_src_clean),
+                        $resolve(dirname($chapter_href) . '/' . basename($img_src_clean)),
+                        $img_src_clean
+                    );
+                    
+                    foreach ($paths_to_try as $try_path) {
+                        $image_data = $zip->getFromName($try_path);
+                        if ($image_data) {
+                            $img_path = $try_path;
+                            break;
+                        }
+                    }
+                    
+                    if ($image_data) {
+                        // Detect MIME type from actual file data
+                        $detected_mime = false;
+                        if (function_exists('finfo_open')) {
+                            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                            $detected_mime = finfo_buffer($finfo, $image_data);
+                            finfo_close($finfo);
+                        }
+                        
+                        // If detection failed, try to get from extension
+                        if (!$detected_mime || !in_array($detected_mime, array('image/jpeg', 'image/png', 'image/gif', 'image/webp'))) {
+                            $ext_from_path = strtolower(pathinfo($img_src_clean, PATHINFO_EXTENSION));
+                            // Clean extension: remove numbers and invalid chars (e.g., "jpg2" -> "jpg")
+                            $ext_from_path = preg_replace('/[^a-z]/', '', $ext_from_path);
+                            if (empty($ext_from_path) || !in_array($ext_from_path, array('jpg', 'jpeg', 'png', 'gif', 'webp'))) {
+                                $ext_from_path = 'jpg';
+                            }
+                            $detected_mime = $this->ttbp_get_image_mime_type($ext_from_path);
+                        }
+                        
+                        // Get proper extension from MIME type
+                        $ext = $this->ttbp_get_extension_from_mime($detected_mime);
+                        $image_id = md5($img_path . time() . rand());
+                        $filename = 'img_' . $image_id . '.' . $ext;
+                        $file_path = $this->temp_dir . '/' . $filename;
+                        
+                        file_put_contents($file_path, $image_data);
+                        
+                        $images[] = array(
+                            'original_src' => $img_src,
+                            'temp_path' => $file_path,
+                            'mime_type' => $detected_mime,
+                            'filename' => $filename
+                        );
+                    }
+                }
+            }
+            
+            return array('html' => trim($html), 'images' => $images);
         }
         
         // Load HTML with proper encoding handling
         libxml_use_internal_errors(true);
         $dom = new DOMDocument('1.0', 'UTF-8');
         
-        // Try to load with UTF-8 encoding
-        $html_utf8 = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        // Ensure HTML is UTF-8 encoded (EPUB files should already be UTF-8)
+        $html_utf8 = mb_convert_encoding($html, 'UTF-8', mb_detect_encoding($html, array('UTF-8', 'ISO-8859-1', 'Windows-1252'), true));
         @$dom->loadHTML('<?xml encoding="UTF-8">' . $html_utf8);
         
         // Remove script and style tags
@@ -873,6 +1081,82 @@ Class TTBP_Import {
         foreach ($scripts as $script) {
             if ($script->parentNode) {
                 $script->parentNode->removeChild($script);
+            }
+        }
+        
+        // Extract and process images
+        $img_nodes = $xpath->query('//img[@src]');
+        foreach ($img_nodes as $img_node) {
+            if (!($img_node instanceof DOMElement)) {
+                continue;
+            }
+            
+            $img_src = $img_node->getAttribute('src');
+            $img_src = html_entity_decode($img_src, ENT_QUOTES);
+            
+            // Clean image source: remove fragment identifiers (#) and query parameters (?)
+            $img_src_clean = preg_replace('/[#?].*$/', '', $img_src);
+            
+            // Try multiple path resolutions
+            $image_data = null;
+            $img_path = null;
+            $paths_to_try = array(
+                $resolve(dirname($chapter_href) . '/' . $img_src_clean),
+                $resolve($img_src_clean),
+                $resolve(dirname($chapter_href) . '/' . basename($img_src_clean)),
+                $img_src_clean
+            );
+            
+            foreach ($paths_to_try as $try_path) {
+                $image_data = $zip->getFromName($try_path);
+                if ($image_data) {
+                    $img_path = $try_path;
+                    break;
+                }
+            }
+            
+            if ($image_data) {
+                // Detect MIME type from actual file data
+                $detected_mime = false;
+                if (function_exists('finfo_open')) {
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $detected_mime = finfo_buffer($finfo, $image_data);
+                    finfo_close($finfo);
+                }
+                
+                // If detection failed, try to get from extension
+                if (!$detected_mime || !in_array($detected_mime, array('image/jpeg', 'image/png', 'image/gif', 'image/webp'))) {
+                    $ext_from_path = strtolower(pathinfo($img_src_clean, PATHINFO_EXTENSION));
+                    // Clean extension: remove numbers and invalid chars (e.g., "jpg2" -> "jpg")
+                    $ext_from_path = preg_replace('/[^a-z]/', '', $ext_from_path);
+                    if (empty($ext_from_path) || !in_array($ext_from_path, array('jpg', 'jpeg', 'png', 'gif', 'webp'))) {
+                        $ext_from_path = 'jpg';
+                    }
+                    $detected_mime = $this->ttbp_get_image_mime_type($ext_from_path);
+                }
+                
+                // Get proper extension from MIME type
+                $ext = $this->ttbp_get_extension_from_mime($detected_mime);
+                $image_id = md5($img_path . time() . rand());
+                $filename = 'img_' . $image_id . '.' . $ext;
+                $file_path = $this->temp_dir . '/' . $filename;
+                
+                file_put_contents($file_path, $image_data);
+                
+                // Store image info with placeholder for later replacement
+                $placeholder = 'TTBP_IMAGE_PLACEHOLDER_' . count($images);
+                $images[] = array(
+                    'original_src' => $img_src,
+                    'placeholder' => $placeholder,
+                    'temp_path' => $file_path,
+                    'mime_type' => $detected_mime,
+                    'filename' => $filename,
+                    'alt' => $img_node->getAttribute('alt') ?: '',
+                    'title' => $img_node->getAttribute('title') ?: ''
+                );
+                
+                // Replace src with placeholder temporarily
+                $img_node->setAttribute('src', $placeholder);
             }
         }
         
@@ -899,7 +1183,7 @@ Class TTBP_Import {
         // Basic cleanup - preserve line breaks for readability
         $html = trim($html);
         
-        return $html;
+        return array('html' => $html, 'images' => $images);
     }
     
     /**
@@ -999,9 +1283,31 @@ Class TTBP_Import {
     }
     
     /**
+     * Import chapter image to WordPress media library
+     */
+    private function ttbp_import_chapter_image($book_id, $image_path, $filename) {
+        if (!file_exists($image_path)) {
+            return false;
+        }
+        
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+        
+        $file_array = array(
+            'name' => $filename,
+            'tmp_name' => $image_path
+        );
+        
+        $attachment_id = media_handle_sideload($file_array, $book_id);
+        
+        return $attachment_id;
+    }
+    
+    /**
      * Convert HTML content to WordPress blocks
      */
-    private function ttbp_convert_html_to_blocks($html) {
+    private function ttbp_convert_html_to_blocks($html, $image_url_map = array()) {
         if (empty($html)) {
             return '';
         }
@@ -1015,8 +1321,8 @@ Class TTBP_Import {
         libxml_use_internal_errors(true);
         $dom = new DOMDocument('1.0', 'UTF-8');
         
-        // Load HTML with proper encoding - wrap in body tag if needed
-        $html_utf8 = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        // Ensure HTML is UTF-8 encoded (EPUB files should already be UTF-8)
+        $html_utf8 = mb_convert_encoding($html, 'UTF-8', mb_detect_encoding($html, array('UTF-8', 'ISO-8859-1', 'Windows-1252'), true));
         
         // Check if HTML already has body tag
         if (stripos($html_utf8, '<body') === false) {
@@ -1040,9 +1346,14 @@ Class TTBP_Import {
         
         // Process each child node
         foreach ($body->childNodes as $node) {
-            $block = $this->ttbp_node_to_block($node, $dom);
+            $block = $this->ttbp_node_to_block($node, $dom, $image_url_map);
             if ($block) {
-                $blocks[] = $block;
+                // Handle multiple blocks (e.g., paragraph with image extracted, or div with children)
+                if (isset($block[0]) && is_array($block[0])) {
+                    $blocks = array_merge($blocks, $block);
+                } else {
+                    $blocks[] = $block;
+                }
             }
         }
         
@@ -1053,7 +1364,7 @@ Class TTBP_Import {
     /**
      * Convert a DOM node to a WordPress block
      */
-    private function ttbp_node_to_block($node, $dom) {
+    private function ttbp_node_to_block($node, $dom, $image_url_map = array()) {
         if ($node->nodeType === XML_TEXT_NODE) {
             $text = trim($node->textContent);
             if (empty($text)) {
@@ -1077,6 +1388,57 @@ Class TTBP_Import {
         
         switch ($tag_name) {
             case 'p':
+                // Check if paragraph contains only an image
+                $img_nodes = $node->getElementsByTagName('img');
+                if ($img_nodes->length === 1 && trim($node->textContent) === '') {
+                    // Paragraph contains only an image, convert to image block
+                    return $this->ttbp_node_to_block($img_nodes->item(0), $dom, $image_url_map);
+                }
+                
+                // Check if paragraph contains images mixed with text
+                $xpath = new DOMXPath($dom);
+                $paragraph_imgs = $xpath->query('.//img', $node);
+                if ($paragraph_imgs->length > 0) {
+                    // Extract images and text separately
+                    $blocks = array();
+                    $current_text = '';
+                    
+                    foreach ($node->childNodes as $child) {
+                        if ($child->nodeType === XML_ELEMENT_NODE && strtolower($child->tagName) === 'img') {
+                            // Save any accumulated text as paragraph
+                            if (!empty(trim($current_text))) {
+                                $blocks[] = array(
+                                    'blockName' => 'core/paragraph',
+                                    'attrs' => array(),
+                                    'innerContent' => array(wp_kses_post($current_text)),
+                                    'innerHTML' => '<p>' . wp_kses_post($current_text) . '</p>'
+                                );
+                                $current_text = '';
+                            }
+                            // Add image block
+                            $img_block = $this->ttbp_node_to_block($child, $dom, $image_url_map);
+                            if ($img_block) {
+                                $blocks[] = $img_block;
+                            }
+                        } else {
+                            $current_text .= $dom->saveHTML($child);
+                        }
+                    }
+                    
+                    // Add remaining text as paragraph
+                    if (!empty(trim($current_text))) {
+                        $blocks[] = array(
+                            'blockName' => 'core/paragraph',
+                            'attrs' => array(),
+                            'innerContent' => array(wp_kses_post($current_text)),
+                            'innerHTML' => '<p>' . wp_kses_post($current_text) . '</p>'
+                        );
+                    }
+                    
+                    return !empty($blocks) ? $blocks : null;
+                }
+                
+                // Regular paragraph with no images
                 $content = $this->ttbp_get_inner_html($node, $dom);
                 $sanitized_content = wp_kses_post($content);
                 return array(
@@ -1168,34 +1530,145 @@ Class TTBP_Import {
                     'innerHTML' => '<hr class="wp-block-separator"/>'
                 );
                 
+            case 'img':
+                if (!($node instanceof DOMElement)) {
+                    return null;
+                }
+                
+                $img_src = $node->getAttribute('src');
+                $img_alt = $node->getAttribute('alt') ?: '';
+                $img_title = $node->getAttribute('title') ?: '';
+                
+                // Find image in URL map (map uses URLs as keys)
+                $image_data = null;
+                if (isset($image_url_map[$img_src])) {
+                    $image_data = $image_url_map[$img_src];
+                } else {
+                    // Try partial match (in case of query strings or different protocols)
+                    foreach ($image_url_map as $url => $image_info) {
+                        if ($url === $img_src || strpos($img_src, $url) !== false || strpos($url, $img_src) !== false) {
+                            $image_data = $image_info;
+                            break;
+                        }
+                    }
+                }
+                
+                // If not found in map, try to find by URL directly
+                if (!$image_data) {
+                    // Image URL might already be replaced, try to find attachment by URL
+                    $attachment_id = attachment_url_to_postid($img_src);
+                    if ($attachment_id) {
+                        $image_data = array(
+                            'url' => $img_src,
+                            'id' => $attachment_id,
+                            'alt' => $img_alt,
+                            'title' => $img_title
+                        );
+                    }
+                }
+                
+                if ($image_data && isset($image_data['id'])) {
+                    $attrs = array(
+                        'id' => intval($image_data['id']),
+                        'sizeSlug' => 'full'
+                    );
+                    
+                    if (!empty($img_alt)) {
+                        $attrs['alt'] = $img_alt;
+                    }
+                    
+                    $img_html = '<figure class="wp-block-image">';
+                    $img_html .= '<img src="' . esc_url($image_data['url']) . '"';
+                    if (!empty($img_alt)) {
+                        $img_html .= ' alt="' . esc_attr($img_alt) . '"';
+                    }
+                    if (!empty($img_title)) {
+                        $img_html .= ' title="' . esc_attr($img_title) . '"';
+                    }
+                    $img_html .= '/></figure>';
+                    
+                    return array(
+                        'blockName' => 'core/image',
+                        'attrs' => $attrs,
+                        'innerContent' => array($img_html),
+                        'innerHTML' => $img_html
+                    );
+                }
+                
+                // Fallback: image not found, return as-is
+                return array(
+                    'blockName' => 'core/image',
+                    'attrs' => array(),
+                    'innerContent' => array($dom->saveHTML($node)),
+                    'innerHTML' => $dom->saveHTML($node)
+                );
+                
             case 'div':
             case 'section':
             case 'article':
-                // For div/section/article, try to extract meaningful content
-                $content = $this->ttbp_get_inner_html($node, $dom);
-                if (!empty(trim(strip_tags($content)))) {
-                    $sanitized_content = wp_kses_post($content);
-                    // Wrap in a paragraph block
-                    return array(
-                        'blockName' => 'core/paragraph',
-                        'attrs' => array(),
-                        'innerContent' => array($sanitized_content),
-                        'innerHTML' => '<p>' . $sanitized_content . '</p>'
-                    );
+                // For div/section/article, recursively process children to convert to blocks
+                $child_blocks = array();
+                foreach ($node->childNodes as $child) {
+                    $child_block = $this->ttbp_node_to_block($child, $dom, $image_url_map);
+                    if ($child_block) {
+                        // Handle multiple blocks (e.g., paragraph with image extracted)
+                        if (isset($child_block[0]) && is_array($child_block[0])) {
+                            $child_blocks = array_merge($child_blocks, $child_block);
+                        } else {
+                            $child_blocks[] = $child_block;
+                        }
+                    }
                 }
+                
+                // If we have blocks, return them (they'll be flattened by the parent)
+                if (!empty($child_blocks)) {
+                    return $child_blocks;
+                }
+                
+                // If no meaningful content, return null to skip
                 return null;
                 
             default:
-                // For unknown elements, try to preserve as paragraph
+                // For unknown block-level elements, recursively process children
+                $child_blocks = array();
+                foreach ($node->childNodes as $child) {
+                    $child_block = $this->ttbp_node_to_block($child, $dom, $image_url_map);
+                    if ($child_block) {
+                        // Skip inline elements (they have blockName === null)
+                        if (isset($child_block['blockName']) && $child_block['blockName'] === null) {
+                            continue;
+                        }
+                        // Handle multiple blocks
+                        if (isset($child_block[0]) && is_array($child_block[0])) {
+                            $child_blocks = array_merge($child_blocks, $child_block);
+                        } else {
+                            $child_blocks[] = $child_block;
+                        }
+                    }
+                }
+                
+                // If we have blocks, return them
+                if (!empty($child_blocks)) {
+                    return $child_blocks;
+                }
+                
+                // If no meaningful content, try to extract text and wrap in paragraph
                 $content = $this->ttbp_get_inner_html($node, $dom);
-                if (!empty(trim(strip_tags($content)))) {
+                $text_content = trim(strip_tags($content));
+                if (!empty($text_content)) {
                     $sanitized_content = wp_kses_post($content);
-                    return array(
-                        'blockName' => 'core/paragraph',
-                        'attrs' => array(),
-                        'innerContent' => array($sanitized_content),
-                        'innerHTML' => '<p>' . $sanitized_content . '</p>'
-                    );
+                    // Remove any remaining div tags and other block-level elements
+                    $sanitized_content = preg_replace('/<\/?div[^>]*>/i', '', $sanitized_content);
+                    $sanitized_content = preg_replace('/<\/?section[^>]*>/i', '', $sanitized_content);
+                    $sanitized_content = preg_replace('/<\/?article[^>]*>/i', '', $sanitized_content);
+                    if (!empty(trim($sanitized_content))) {
+                        return array(
+                            'blockName' => 'core/paragraph',
+                            'attrs' => array(),
+                            'innerContent' => array($sanitized_content),
+                            'innerHTML' => '<p>' . $sanitized_content . '</p>'
+                        );
+                    }
                 }
                 return null;
         }

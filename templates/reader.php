@@ -7,7 +7,26 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-get_header();
+// Check if theme is a block theme (WordPress 5.9+)
+$is_block_theme = function_exists('wp_is_block_theme') && wp_is_block_theme();
+
+if ($is_block_theme) {
+  // For block themes, output minimal HTML structure
+  ?>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+  <meta charset="<?php bloginfo('charset'); ?>">
+  <?php wp_head(); ?>
+</head>
+<body <?php body_class(); ?>>
+  <?php wp_body_open(); ?>
+  <div class="wp-site-blocks">
+  <?php
+} else {
+  // For classic themes, use standard header
+  get_header();
+}
 
 // Get the book id
 $ttbp_book_id = get_the_ID();
@@ -93,6 +112,16 @@ $ttbp_categories = !empty($ttbp_category_terms) ? $ttbp_category_terms : array()
   </div>
 </noscript>
 
-
-
-<?php get_footer(); ?>
+<?php
+// Close the template based on theme type
+if ($is_block_theme) {
+  ?>
+  </div><!-- .wp-site-blocks -->
+  <?php wp_footer(); ?>
+</body>
+</html>
+  <?php
+} else {
+  get_footer();
+}
+?>

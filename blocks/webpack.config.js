@@ -26,6 +26,17 @@ module.exports = {
     filename: '[name]/index.js',
     clean: false, // Don't clean - preserve other files in dist (book-reader, tagify, etc.)
   },
+  optimization: {
+    ...defaultConfig.optimization,
+    splitChunks: {
+      cacheGroups: {
+        // Disable the default 'style' cache group that adds 'style-' prefix
+        // CSS will be extracted per entry point using MiniCssExtractPlugin
+        style: false,
+        default: false,
+      },
+    },
+  },
   plugins: [
     // Remove MiniCssExtractPlugin from default config (we'll add our own)
     // Also filter out any CleanWebpackPlugin if present
@@ -48,15 +59,6 @@ module.exports = {
             to: path.resolve(__dirname, '..', 'dist', blockName, 'block.json'),
           },
         ];
-        // Copy render.php if it exists
-        const renderPhp = path.resolve(__dirname, blockDir, 'src', 'render.php');
-        const fs = require('fs');
-        if (fs.existsSync(renderPhp)) {
-          patterns.push({
-            from: renderPhp,
-            to: path.resolve(__dirname, '..', 'dist', blockName, 'render.php'),
-          });
-        }
         return patterns;
       }),
     }),

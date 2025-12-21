@@ -3,11 +3,11 @@
  * Settings Submodule
  */
 
- if (!defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
-Class TTBP_Settings {
+class TTBP_Settings {
     private $options;
     private $option_name = 'ttbp_settings';
 
@@ -64,8 +64,8 @@ Class TTBP_Settings {
             'ttbp_general'
         );
         add_settings_field(
-            'parse_import_as_blocks',
-            __('Parse Import as Blocks', 'the-total-book-project'),
+            'import_options',
+            __('Import options', 'the-total-book-project'),
             array($this, 'ttbp_render_parse_import_as_blocks_field'),
             'ttbp-settings',
             'ttbp_general'
@@ -76,7 +76,7 @@ Class TTBP_Settings {
         if (!current_user_can('manage_options')) {
             return;
         }
-        ?>
+?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             <form action="options.php" method="post">
@@ -87,7 +87,7 @@ Class TTBP_Settings {
                 ?>
             </form>
         </div>
-        <?php
+    <?php
     }
 
     public function ttbp_render_section_info() {
@@ -97,7 +97,7 @@ Class TTBP_Settings {
     public function ttbp_render_template_field() {
         $templates = $this->get_available_templates();
         $current = isset($this->options['template']) ? $this->options['template'] : 'default';
-        ?>
+    ?>
         <select name="<?php echo esc_attr($this->option_name); ?>[template]" id="template">
             <?php foreach ($templates as $key => $label) : ?>
                 <option value="<?php echo esc_attr($key); ?>" <?php selected($current, $key); ?>>
@@ -108,24 +108,24 @@ Class TTBP_Settings {
         <p class="description">
             <?php esc_html_e('Select the template to use for displaying books.', 'the-total-book-project'); ?>
         </p>
-        <?php
+    <?php
     }
 
     public function ttbp_render_parse_import_as_blocks_field() {
         $parse_import_as_blocks = isset($this->options['parse_import_as_blocks']) ? $this->options['parse_import_as_blocks'] : false;
-        ?>
+    ?>
         <label>
             <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[parse_import_as_blocks]" value="1" <?php checked($parse_import_as_blocks); ?>>
-            <?php esc_html_e('Parse imported EPUB files as WordPress blocks.', 'the-total-book-project'); ?>
+            <?php esc_html_e('Parse imported files as WordPress blocks.', 'the-total-book-project'); ?>
         </label>
-        <?php
+    <?php
     }
 
     public function ttbp_render_display_options() {
         $show_meta = isset($this->options['show_meta']) ? $this->options['show_meta'] : true;
         $show_toc = isset($this->options['show_toc']) ? $this->options['show_toc'] : true;
         $disable_auto_copyright = isset($this->options['disable_auto_copyright']) ? $this->options['disable_auto_copyright'] : false;
-        ?>
+    ?>
         <fieldset>
             <label>
                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_meta]" value="1" <?php checked($show_meta); ?>>
@@ -142,28 +142,28 @@ Class TTBP_Settings {
                 <?php esc_html_e('Disable automatic copyright notice (keep other metadata)', 'the-total-book-project'); ?>
             </label>
         </fieldset>
-        <?php
+<?php
     }
 
     public function ttbp_sanitize_settings($input) {
         $sanitized = array();
-        
+
         // Sanitize template
         $templates = array_keys($this->get_available_templates());
         $sanitized['template'] = in_array($input['template'], $templates) ? $input['template'] : 'default';
-        
+
         // Check if template has changed and flush rewrite rules if needed
         $current_template = isset($this->options['template']) ? $this->options['template'] : 'default';
         if ($current_template !== $sanitized['template']) {
             add_action('admin_init', array($this, 'ttbp_flush_rewrite_rules'));
         }
-        
+
         // Sanitize checkboxes
         $sanitized['show_meta'] = isset($input['show_meta']) ? (bool) $input['show_meta'] : false;
         $sanitized['show_toc'] = isset($input['show_toc']) ? (bool) $input['show_toc'] : false;
         $sanitized['disable_auto_copyright'] = isset($input['disable_auto_copyright']) ? (bool) $input['disable_auto_copyright'] : false;
         $sanitized['parse_import_as_blocks'] = isset($input['parse_import_as_blocks']) ? (bool) $input['parse_import_as_blocks'] : false;
-        
+
         return $sanitized;
     }
 
@@ -171,23 +171,23 @@ Class TTBP_Settings {
         // Get all PHP files from the templates directory
         $template_files = glob(plugin_dir_path(dirname(__FILE__)) . 'templates/*.php');
         $available_templates = array();
-        
+
         // Add all template files from the directory
         foreach ($template_files as $template) {
             $template_name = basename($template, '.php');
             $available_templates[$template_name] = ucfirst($template_name);
         }
-        
+
         // Add the Blog option
         $available_templates['blog'] = 'Blog';
-        
+
         return $available_templates;
     }
 
     public function get_option($key, $default = null) {
         return isset($this->options[$key]) ? $this->options[$key] : $default;
     }
-    
+
     public function ttbp_flush_rewrite_rules() {
         flush_rewrite_rules();
     }

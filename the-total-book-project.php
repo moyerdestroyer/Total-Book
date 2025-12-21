@@ -16,31 +16,31 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-Class TTBP_Plugin {
+class TTBP_Plugin {
 	public $settings;
-	
+
 	public function __construct() {
-		require_once plugin_dir_path( __FILE__ ) . 'modules/book.php';
-		require_once plugin_dir_path( __FILE__ ) . 'modules/chapter.php';
-		require_once plugin_dir_path( __FILE__ ) . 'modules/settings.php';
-		require_once plugin_dir_path( __FILE__ ) . 'modules/rest_apis.php';
-		require_once plugin_dir_path( __FILE__ ) . 'modules/shortcodes.php';
-		require_once plugin_dir_path( __FILE__ ) . 'modules/import.php';
-		
+		require_once plugin_dir_path(__FILE__) . 'modules/book.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/chapter.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/settings.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/rest_apis.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/shortcodes.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/import.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/blocks/bookshelf-block.php';
+
 		add_action('admin_enqueue_scripts', array($this, 'ttbp_enqueue_admin_styles'));
 		add_action('wp_enqueue_scripts', array($this, 'ttbp_enqueue_frontend_styles'));
-		add_action('init', array($this, 'ttbp_register_blocks'));
-		
+
 		// Register activation and deactivation hooks
 		register_activation_hook(__FILE__, array($this, 'ttbp_activate'));
 		register_deactivation_hook(__FILE__, array($this, 'ttbp_deactivate'));
 
 		// Initialize settings
 		$this->settings = new TTBP_Settings();
-		
+
 		// Load blog module if blog template is selected
 		if ($this->settings->get_option('template') === 'blog') {
-			require_once plugin_dir_path( __FILE__ ) . 'modules/blog.php';
+			require_once plugin_dir_path(__FILE__) . 'modules/blog.php';
 			new TTBP_Blog();
 		} else {
 			add_filter('single_template', array($this, 'ttbp_load_book_template'));
@@ -51,63 +51,63 @@ Class TTBP_Plugin {
 		// Only load on book and chapter post type screens
 		$screen = get_current_screen();
 		if ($screen->post_type === 'ttbp-book' || $screen->post_type === 'ttbp_chapter') {
-							wp_enqueue_style(
-					'ttbp-admin',
-					plugin_dir_url(__FILE__) . 'CSS/book-admin.css',
-					array(),
-					'1.0.0'
-				);
+			wp_enqueue_style(
+				'ttbp-admin',
+				plugin_dir_url(__FILE__) . 'CSS/book-admin.css',
+				array(),
+				'1.0.0'
+			);
 
-							wp_enqueue_style(
-					'ttbp-tagify',
-					plugin_dir_url(__FILE__) . 'dist/tagify.css',
-					array(),
-					'1.0.0'
-				);
+			wp_enqueue_style(
+				'ttbp-tagify',
+				plugin_dir_url(__FILE__) . 'dist/tagify.css',
+				array(),
+				'1.0.0'
+			);
 
-							wp_enqueue_script(
-					'ttbp-tagify',
-					plugin_dir_url(__FILE__) . 'dist/tagify.js',
-					array('jquery'),
-					'1.0.0',
-					true
-				);
-							wp_enqueue_script(
-					'ttbp-admin',
-					plugin_dir_url(__FILE__) . 'js/book-admin.js',
-					array('jquery', 'jquery-ui-sortable'),
-					'1.0.0',
-					true
-				);
+			wp_enqueue_script(
+				'ttbp-tagify',
+				plugin_dir_url(__FILE__) . 'dist/tagify.js',
+				array('jquery'),
+				'1.0.0',
+				true
+			);
+			wp_enqueue_script(
+				'ttbp-admin',
+				plugin_dir_url(__FILE__) . 'js/book-admin.js',
+				array('jquery', 'jquery-ui-sortable'),
+				'1.0.0',
+				true
+			);
 
-							wp_localize_script('ttbp-admin', 'ttbpAdmin', array(
+			wp_localize_script('ttbp-admin', 'ttbpAdmin', array(
 				'ajaxurl' => admin_url('admin-ajax.php'),
-									'nonce' => wp_create_nonce('ttbp_nonce'),
-									'messages' => array(
-						'selectBook' => __('Please select a book', 'the-total-book-project'),
-						'assigning' => __('Assigning...', 'the-total-book-project'),
-						'assign' => __('Assign', 'the-total-book-project'),
-						'assignFailed' => __('Failed to assign chapter', 'the-total-book-project'),
-						'authorPlaceholder' => __('Type author name and press Enter', 'the-total-book-project'),
-						'authorRequired' => __('At least one author is required. Please add an author.', 'the-total-book-project')
-					)
+				'nonce' => wp_create_nonce('ttbp_nonce'),
+				'messages' => array(
+					'selectBook' => __('Please select a book', 'the-total-book-project'),
+					'assigning' => __('Assigning...', 'the-total-book-project'),
+					'assign' => __('Assign', 'the-total-book-project'),
+					'assignFailed' => __('Failed to assign chapter', 'the-total-book-project'),
+					'authorPlaceholder' => __('Type author name and press Enter', 'the-total-book-project'),
+					'authorRequired' => __('At least one author is required. Please add an author.', 'the-total-book-project')
+				)
 			));
 		}
 	}
 
 	public function ttbp_enqueue_frontend_styles() {
 		// Always enqueue shortcode styles
-					wp_enqueue_style(
-				'ttbp-shortcodes',
-				plugin_dir_url(__FILE__) . 'CSS/book-shortcodes.css',
-				array(),
-				'1.0.0'
-			);
-		
+		wp_enqueue_style(
+			'ttbp-shortcodes',
+			plugin_dir_url(__FILE__) . 'CSS/book-shortcodes.css',
+			array(),
+			'1.0.0'
+		);
+
 		if (is_singular('ttbp-book')) {
 			$settings = new TTBP_Settings();
 			$template = $settings->get_option('template', 'plain');
-			
+
 			if ($template === 'reader') {
 				// Enqueue Next.js app
 				wp_enqueue_script('ttbp-widget', plugin_dir_url(__FILE__) . 'dist/book-reader.min.js', array(), '1.0.0', true);
@@ -119,23 +119,25 @@ Class TTBP_Plugin {
 	public function ttbp_load_book_template($template) {
 		$settings = new TTBP_Settings();
 		$template_name = $settings->get_option('template', 'plain');
-		
+
+		//TODO: Add support for block theme templates so that users can define the page template for the book post type.
+
 		// Handle chapter URLs only for reader template
 		if ($template_name === 'reader' && is_singular('ttbp_chapter')) {
 			$chapter_id = get_the_ID();
 			$book_id = get_post_field('post_parent', $chapter_id);
-			
+
 			if ($book_id) {
 				$book_url = get_permalink($book_id);
 				wp_safe_redirect($book_url);
 				exit;
 			}
 		}
-		
+
 		// Handle book template
 		if (is_singular('ttbp-book')) {
 			$custom_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name . '.php';
-			
+
 			if (file_exists($custom_template)) {
 				return $custom_template;
 			}
@@ -147,10 +149,10 @@ Class TTBP_Plugin {
 		// Register post types
 		$book = new TTBP_Book();
 		$book->ttbp_register_post_type();
-		
+
 		$chapter = new TTBP_Chapter();
 		$chapter->ttbp_register_post_type();
-		
+
 		// Flush rewrite rules
 		flush_rewrite_rules();
 	}
@@ -158,38 +160,6 @@ Class TTBP_Plugin {
 	public function ttbp_deactivate() {
 		// Flush rewrite rules on deactivation
 		flush_rewrite_rules();
-	}
-
-	public function ttbp_register_blocks() {
-		// Register all blocks from dist folder
-		$blocks_dir = plugin_dir_path(__FILE__) . 'dist';
-		
-		if (!is_dir($blocks_dir)) {
-			return;
-		}
-		
-		// Scan for block directories
-		$blocks = glob($blocks_dir . '/*/block.json');
-		
-		foreach ($blocks as $block_json_path) {
-			$block_dir = dirname($block_json_path);
-			$block_name = basename($block_dir);
-			
-			// Register block using block.json
-			$args = array();
-			
-			// If render.php exists, use it as render callback
-			$render_php = $block_dir . '/render.php';
-			if (file_exists($render_php)) {
-				$args['render_callback'] = function($attributes, $content) use ($render_php) {
-					ob_start();
-					include $render_php;
-					return ob_get_clean();
-				};
-			}
-			
-			register_block_type($block_dir, $args);
-		}
 	}
 }
 
