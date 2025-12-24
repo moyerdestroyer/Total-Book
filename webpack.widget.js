@@ -3,16 +3,19 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: './src/widget.tsx',
+  entry: {
+    'book-reader': './src/widget.tsx',
+    'book-importer': './src/importer.tsx',
+  },
   mode: 'production',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'book-reader.min.js',
+    filename: '[name].min.js',
     clean: false, // Don't clean - preserve blocks subdirectories
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'book-reader.min.css',
+      filename: '[name].min.css',
     }),
     new CopyPlugin({
       patterns: [
