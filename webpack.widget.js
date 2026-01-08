@@ -5,7 +5,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = {
   entry: {
     'book-reader': './src/widget.tsx',
-    'book-importer': './src/importer.tsx',
   },
   mode: 'production',
   output: {

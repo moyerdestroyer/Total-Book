@@ -1,64 +1,115 @@
 <?php
 /**
- * Bookshelf Block Module
- * Handles registration and rendering of the bookshelf block
+ * Book Shelf Block Module
+ * Handles registration and rendering of the book-shelf block
  */
 
 if (!defined('ABSPATH')) {
 	exit;
 }
 
-class TTBP_Bookshelf_Block {
+class TTBP_Book_Shelf_Block {
 	
 	public function __construct() {
-		add_action('init', array($this, 'register_bookshelf_block'));
+		add_action('init', array($this, 'register_book_shelf_block'));
 	}
 	
-	/**
-	 * Register the bookshelf block
-	 */
-	public function register_bookshelf_block() {
-		$block_dir = plugin_dir_path(dirname(__FILE__)) . 'dist/bookshelf';
+	public function register_book_shelf_block() {
+		$block_path = plugin_dir_path(__FILE__) . '../../dist/book-shelf/block.json';
 		
-		if (!file_exists($block_dir . '/block.json')) {
-			return;
+		if (file_exists($block_path)) {
+			register_block_type($block_path, array(
+				'render_callback' => array($this, 'book_shelf_render_callback'),
+			));
+
+			// Enqueue shortcode styles in editor for preview
+			add_action('enqueue_block_editor_assets', function() {
+				wp_enqueue_style(
+					'ttbp-shortcodes-editor',
+					plugin_dir_url(dirname(dirname(__FILE__))) . 'CSS/book-shortcodes.css',
+					array(),
+					'1.0.0'
+				);
+			});
 		}
-		
-		// Register block with render callback
-		register_block_type($block_dir, array(
-			'render_callback' => array($this, 'render_bookshelf_block'),
-		));
 	}
-	
-	/**
-	 * Render callback for the bookshelf block
-	 *
-	 * @param array $attributes Block attributes
-	 * @param string $content Block content
-	 * @return string Rendered HTML
-	 */
-	public function render_bookshelf_block($attributes, $content) {
-		$count = isset($attributes['count']) ? intval($attributes['count']) : 6;
-		$show_excerpt = isset($attributes['showExcerpt']) ? $attributes['showExcerpt'] : true;
-		
+
+	public function book_shelf_render_callback($attributes, $content) {
+		// Default attributes matching the shortcode
+		$defaults = array(
+			'category' => array(),
+			'limit' => 10,
+			'orderby' => 'title',
+			'order' => 'ASC',
+			'showMeta' => true,
+			'showExcerpt' => true,
+			'columns' => 3,
+			'template' => 'grid'
+		);
+
+		$atts = wp_parse_args($attributes, $defaults);
+
+		// Convert category array to comma-separated string for query
+		$category_slugs = array();
+		if (!empty($atts['category']) && is_array($atts['category'])) {
+			$category_slugs = $atts['category'];
+		} elseif (!empty($atts['category']) && is_string($atts['category'])) {
+			$category_slugs = explode(',', $atts['category']);
+		}
+
+		// Build query arguments
 		$args = array(
 			'post_type' => 'ttbp-book',
-			'posts_per_page' => $count,
-			'orderby' => 'date',
-			'order' => 'DESC',
-			'post_status' => 'publish',
+			'posts_per_page' => intval($atts['limit']),
+			'orderby' => $atts['orderby'],
+			'order' => $atts['order'],
+			'post_status' => 'publish'
 		);
-		
-		$books = get_posts($args);
-		
-		if (empty($books)) {
-			return '<p class="ttbp-no-results">' . esc_html__('No books found.', 'the-total-book-project') . '</p>';
+
+		// Add category filter if specified
+		if (!empty($category_slugs)) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Cached query with reasonable limits
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => 'ttbp_book_category',
+					'field' => 'slug',
+					'terms' => array_map('trim', $category_slugs)
+				)
+			);
 		}
+
+		// Cache the query results to improve performance
+		$cache_key = 'ttbp_books_block_' . md5(serialize($args));
+		$books = wp_cache_get($cache_key, 'ttbp');
 		
+		if (false === $books) {
+			$books = get_posts($args);
+			wp_cache_set($cache_key, $books, 'ttbp', HOUR_IN_SECONDS);
+		}
+
+		if (empty($books)) {
+			return '<p class="total-book-no-results">' . esc_html__('No books found.', 'the-total-book-project') . '</p>';
+		}
+
+		// Render the books list
 		ob_start();
+		$this->render_books_list($books, $atts);
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render books list (matching shortcode functionality)
+	 */
+	private function render_books_list($books, $atts) {
+		$show_meta = filter_var($atts['showMeta'], FILTER_VALIDATE_BOOLEAN);
+		$show_excerpt = filter_var($atts['showExcerpt'], FILTER_VALIDATE_BOOLEAN);
+		$columns = intval($atts['columns']);
+		$template = $atts['template'];
+
+		$column_class = 'book-col-' . $columns;
 		?>
-		<div class="ttbp-book-shelf" data-count="<?php echo esc_attr($count); ?>" data-show-excerpt="<?php echo esc_attr($show_excerpt ? 'true' : 'false'); ?>">
-			<div class="books-grid book-col-3">
+		<div class="ttbp-books-list total-books-list ttbp-books-<?php echo esc_attr($template); ?>">
+			<div class="books-grid <?php echo esc_attr($column_class); ?>">
 				<?php foreach ($books as $book) : ?>
 					<div class="book-item">
 						<div class="book-cover">
@@ -77,26 +128,21 @@ class TTBP_Bookshelf_Block {
 									<div class="book-author">
 										<?php
 										$authors = TTBP_Book::get_book_authors($book->ID);
-										echo esc_html(implode(', ', $authors));
+										if (!empty($authors)) {
+											echo esc_html(implode(', ', $authors));
+										}
 										?>
 									</div>
 								</a>
 							</div>
 						</div>
-						<?php if ($show_excerpt && !empty($book->post_excerpt)) : ?>
-							<div class="book-excerpt">
-								<?php echo esc_html(wp_trim_words($book->post_excerpt, 20)); ?>
-							</div>
-						<?php endif; ?>
 					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
 		<?php
-		return ob_get_clean();
 	}
 }
 
-// Initialize the bookshelf block
-new TTBP_Bookshelf_Block();
-
+// Initialize the book shelf block
+new TTBP_Book_Shelf_Block();

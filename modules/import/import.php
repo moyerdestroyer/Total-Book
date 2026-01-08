@@ -11,10 +11,6 @@ Class TTBP_Import {
     public function __construct() {
         // Add import submenu item
         add_action('admin_menu', array($this, 'ttbp_add_import_submenu'));
-        add_action('admin_enqueue_scripts', function() {
-            wp_enqueue_script('ttbp-import-scripts', plugin_dir_url(__FILE__) . '../../dist/book-importer.min.js', array('react', 'react-dom'), '1.0.0', true);
-            wp_enqueue_style('ttbp-import-styles', plugin_dir_url(__FILE__) . '../../dist/book-importer.min.css', array(), '1.0.0');
-        });
     }
     public function ttbp_add_import_submenu() {
         add_submenu_page(
@@ -27,7 +23,11 @@ Class TTBP_Import {
         );
     }
     public function ttbp_render_import_page() {
-        echo '<div id="ttbp-import-page"></div>';
+        // Import page will be implemented in PHP
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Import Book', 'the-total-book-project') . '</h1>';
+        echo '<p>' . esc_html__('Import functionality will be available here.', 'the-total-book-project') . '</p>';
+        echo '</div>';
     }
 }
 new TTBP_Import();

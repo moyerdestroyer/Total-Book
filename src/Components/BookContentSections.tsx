@@ -47,6 +47,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
   const hiddenRef = useRef<HTMLDivElement>(null); // Ref for hidden pagination calculation
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [pageHeight, setPageHeight] = useState<number>(0); // Store the visible container height
+  const [measureWidth, setMeasureWidth] = useState<number | null>(null); // Width to apply to measure element
 
   // Expose helper functions to parent component
   useImperativeHandle(ref, () => ({
@@ -69,31 +70,47 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
     }
   }), [sections, currentPage]);
 
-  // Track content container size
+  // Track content container size and sync measure width
   useEffect(() => {
     if (!contentRef.current) return;
 
+    const updateDimensions = () => {
+      if (!contentRef.current) return;
+
+      const { width, height } = contentRef.current.getBoundingClientRect();
+      setContainerSize({ width, height });
+      
+      // Use CSS-computed height instead of ResizeObserver height
+      const computedStyle = window.getComputedStyle(contentRef.current);
+      const cssHeight = parseFloat(computedStyle.height);
+      setPageHeight(cssHeight); // Use the CSS-computed height
+      
+      // Measure the actual computed width of .book-content
+      const computedWidth = parseFloat(computedStyle.width);
+      setMeasureWidth(computedWidth);
+      
+      // Debug logging
+      /*
+      console.log('[Dimension Debug]', {
+        resizeObserverHeight: height,
+        cssComputedHeight: cssHeight,
+        computedWidth: computedWidth,
+        difference: cssHeight - height,
+        usingHeight: cssHeight
+      });
+      */
+    };
+
     const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setContainerSize({ width, height });
-        
-        // Use CSS-computed height instead of ResizeObserver height
-        const computedStyle = window.getComputedStyle(contentRef.current!);
-        const cssHeight = parseFloat(computedStyle.height);
-        setPageHeight(cssHeight); // Use the CSS-computed height
-        
-        // Debug logging
-        console.log('[Height Debug]', {
-          resizeObserverHeight: height,
-          cssComputedHeight: cssHeight,
-          difference: cssHeight - height,
-          usingHeight: cssHeight
-        });
-      }
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(updateDimensions);
     });
 
     resizeObserver.observe(contentRef.current);
+    
+    // Initial measurement
+    updateDimensions();
+    
     return () => resizeObserver.disconnect();
   }, []);
 
@@ -138,13 +155,14 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
     const allSections = [...frontMatter, ...chapters, ...backMatter];
 
     // Log section details for debugging
+    /*
     console.log('Section details:', allSections.map((section, index) => ({
       index,
       type: section.type,
       title: section.title,
       contentPreview: section.html.substring(0, 50).replace(/\s+/g, ' ').trim()
     })));
-
+    */
     return allSections;
   };
 
@@ -153,7 +171,6 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
     if (!hiddenRef.current || !bookData || !pageHeight) return;
 
     const sections = getContentSections();
-    console.log('Total sections to process:', sections.length);
 
     // Handle case where no sections are available
     if (sections.length === 0) {
@@ -180,6 +197,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
     setSections(paginationResult.sections);
     
     // Log section boundaries for debugging
+    /*
     console.log('Section boundaries:', paginationResult.sections.map(section => ({
       type: section.type,
       title: section.title,
@@ -187,7 +205,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
       endPage: section.endPage + 1,
       pageCount: section.pageCount
     })));
-    
+    */
     const chapterSections = paginationResult.sections.filter(section => section.type === 'chapter');
     const chapterBoundaries = chapterSections.map(chapter => ({
       id: chapter.id!,
@@ -202,6 +220,19 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
 
   // Debounced pagination for resize events
   const debouncedPaginate = debounce(processSections, 200);
+
+  // Update measure width when content changes (pages, fontSize, etc.)
+  useEffect(() => {
+    if (!contentRef.current) return;
+    
+    // Use requestAnimationFrame to ensure DOM has updated after content change
+    requestAnimationFrame(() => {
+      if (!contentRef.current) return;
+      const computedStyle = window.getComputedStyle(contentRef.current);
+      const computedWidth = parseFloat(computedStyle.width);
+      setMeasureWidth(computedWidth);
+    });
+  }, [pages, fontSize, currentPage]);
 
   // Run pagination on mount and when bookData changes
   useEffect(() => {
@@ -218,6 +249,7 @@ const BookContentSections = forwardRef<BookContentSectionsRef, BookContentSectio
         <div
           ref={hiddenRef}
           className="book-content-measure"
+          style={measureWidth !== null ? { width: `${measureWidth}px` } : undefined}
         />
         {/* Visible content */}
         <div className="book-content" ref={contentRef}

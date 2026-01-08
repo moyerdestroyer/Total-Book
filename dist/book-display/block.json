@@ -1,0 +1,13 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "ttbp/book-display",
+	"title": "Book Display",
+	"category": "widgets",
+	"icon": "book",
+	"description": "Display a book on your page.",
+	"keywords": ["book", "display", "ttbp"],
+	"textdomain": "the-total-book-project",
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css"
+}

@@ -39,6 +39,13 @@ class TTBP_REST_API {
             'callback' => array($this, 'ttbp_get_book_content'),
             'permission_callback' => array($this, 'ttbp_all_permission_callback'),
         ));
+
+        // Get books list for block editor preview
+        register_rest_route('ttbp/v1', '/books', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'ttbp_get_books_list'),
+            'permission_callback' => array($this, 'ttbp_logged_in_permission_callback'),
+        ));
     }
     public function ttbp_all_permission_callback() {
         return true;
@@ -277,6 +284,70 @@ class TTBP_REST_API {
         $book_content = apply_filters('ttbp_book_content_rest', $book_content, $book_id);
 
         return rest_ensure_response($book_content);
+    }
+
+    /**
+     * Get books list for block editor preview
+     */
+    public function ttbp_get_books_list($request) {
+        $category = $request->get_param('category');
+        $limit = $request->get_param('limit') ? intval($request->get_param('limit')) : 10;
+        $orderby = $request->get_param('orderby') ?: 'title';
+        $order = $request->get_param('order') ?: 'ASC';
+
+        // Build query arguments
+        $args = array(
+            'post_type' => 'ttbp-book',
+            'posts_per_page' => $limit,
+            'orderby' => $orderby,
+            'order' => $order,
+            'post_status' => 'publish'
+        );
+
+        // Add category filter if specified
+        if (!empty($category)) {
+            $category_slugs = is_array($category) ? $category : explode(',', $category);
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+            $args['tax_query'] = array(
+                array(
+                    'taxonomy' => 'ttbp_book_category',
+                    'field' => 'slug',
+                    'terms' => array_map('trim', $category_slugs)
+                )
+            );
+        }
+
+        $books = get_posts($args);
+
+        $books_data = array();
+        foreach ($books as $book) {
+            // Get featured image
+            $featured_image = null;
+            if (has_post_thumbnail($book->ID)) {
+                $image_id = get_post_thumbnail_id($book->ID);
+                $image_data = wp_get_attachment_image_src($image_id, 'medium');
+                if ($image_data) {
+                    $featured_image = array(
+                        'url' => $image_data[0],
+                        'width' => $image_data[1],
+                        'height' => $image_data[2],
+                    );
+                }
+            }
+
+            // Get authors
+            $authors = TTBP_Book::get_book_authors($book->ID);
+
+            $books_data[] = array(
+                'id' => $book->ID,
+                'title' => $book->post_title,
+                'permalink' => get_permalink($book->ID),
+                'featured_image' => $featured_image,
+                'authors' => $authors,
+            );
+        }
+
+        return rest_ensure_response($books_data);
     }
 
 }

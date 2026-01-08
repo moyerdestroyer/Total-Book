@@ -27,6 +27,7 @@ class TTBP_Plugin {
 		require_once plugin_dir_path(__FILE__) . 'modules/shortcodes.php';
 		require_once plugin_dir_path(__FILE__) . 'modules/import/import.php';
 		require_once plugin_dir_path(__FILE__) . 'modules/blocks/bookshelf-block.php';
+		require_once plugin_dir_path(__FILE__) . 'modules/blocks/bookdisplay-block.php';
 
 		add_action('admin_enqueue_scripts', array($this, 'ttbp_enqueue_admin_styles'));
 		add_action('wp_enqueue_scripts', array($this, 'ttbp_enqueue_frontend_styles'));
@@ -46,7 +47,7 @@ class TTBP_Plugin {
 			add_filter('single_template', array($this, 'ttbp_load_book_template'));
 		}
 	}
-
+	
 	public function ttbp_enqueue_admin_styles($hook) {
 		// Only load on book and chapter post type screens
 		$screen = get_current_screen();
@@ -117,25 +118,20 @@ class TTBP_Plugin {
 	}
 
 	public function ttbp_load_book_template($template) {
-		$settings = new TTBP_Settings();
-		$template_name = $settings->get_option('template', 'plain');
-
-		//TODO: Add support for block theme templates so that users can define the page template for the book post type.
-
-		// Handle chapter URLs only for reader template
+		$settings      = new TTBP_Settings();
+		$template_name = $settings->get_option('template', 'theme');
+		// Handle chapter redirect only when using the 'reader' template
 		if ($template_name === 'reader' && is_singular('ttbp_chapter')) {
 			$chapter_id = get_the_ID();
-			$book_id = get_post_field('post_parent', $chapter_id);
-
+			$book_id    = get_post_field('post_parent', $chapter_id);
 			if ($book_id) {
-				$book_url = get_permalink($book_id);
-				wp_safe_redirect($book_url);
+				wp_safe_redirect(get_permalink($book_id), 301);
 				exit;
 			}
 		}
 
-		// Handle book template
-		if (is_singular('ttbp-book')) {
+		// Only force a plugin template if the user explicitly chose one (not 'theme')
+		if (is_singular('ttbp-book') && $template_name !== 'theme') {
 			$custom_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name . '.php';
 
 			if (file_exists($custom_template)) {

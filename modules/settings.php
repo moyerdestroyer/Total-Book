@@ -15,7 +15,7 @@ class TTBP_Settings {
         add_action('admin_menu', array($this, 'ttbp_add_settings_page'));
         add_action('admin_init', array($this, 'ttbp_register_settings'));
         $this->options = get_option($this->option_name, array(
-            'template' => 'default',
+            'template' => 'theme',
             'show_meta' => true,
             'show_toc' => true,
             'disable_auto_copyright' => false,
@@ -96,7 +96,7 @@ class TTBP_Settings {
 
     public function ttbp_render_template_field() {
         $templates = $this->get_available_templates();
-        $current = isset($this->options['template']) ? $this->options['template'] : 'default';
+        $current = isset($this->options['template']) ? $this->options['template'] : 'theme';
     ?>
         <select name="<?php echo esc_attr($this->option_name); ?>[template]" id="template">
             <?php foreach ($templates as $key => $label) : ?>
@@ -106,7 +106,11 @@ class TTBP_Settings {
             <?php endforeach; ?>
         </select>
         <p class="description">
-            <?php esc_html_e('Select the template to use for displaying books.', 'the-total-book-project'); ?>
+            <?php esc_html_e('Choose how books are displayed:', 'the-total-book-project'); ?><br>
+            <strong><?php esc_html_e('"Use E-reader with my theme"', 'the-total-book-project'); ?></strong>
+            <?php esc_html_e('Recommended for block themes (Twenty Twenty-Four, etc.) so you can you fully customize the book page layout, header, footer, and styles using the Site Editor.', 'the-total-book-project'); ?><br>
+            <strong><?php esc_html_e('Other options:', 'the-total-book-project'); ?></strong>
+            <?php esc_html_e('Use built-in plugin templates (overrides theme).', 'the-total-book-project'); ?>
         </p>
     <?php
     }
@@ -150,10 +154,10 @@ class TTBP_Settings {
 
         // Sanitize template
         $templates = array_keys($this->get_available_templates());
-        $sanitized['template'] = in_array($input['template'], $templates) ? $input['template'] : 'default';
+        $sanitized['template'] = in_array($input['template'], $templates) ? $input['template'] : 'theme';
 
         // Check if template has changed and flush rewrite rules if needed
-        $current_template = isset($this->options['template']) ? $this->options['template'] : 'default';
+        $current_template = isset($this->options['template']) ? $this->options['template'] : 'theme';
         if ($current_template !== $sanitized['template']) {
             add_action('admin_init', array($this, 'ttbp_flush_rewrite_rules'));
         }
@@ -180,6 +184,8 @@ class TTBP_Settings {
 
         // Add the Blog option
         $available_templates['blog'] = 'Blog';
+        // Add the Theme option
+        $available_templates['theme'] = 'Theme';
 
         return $available_templates;
     }

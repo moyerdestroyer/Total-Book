@@ -1,0 +1,131 @@
+// Editor styles for book shelf block
+// These styles ensure the preview matches the frontend
+.wp-block-ttbp-book-shelf {
+	.ttbp-books-list,
+	.total-books-list {
+		margin: 20px 0;
+		padding: 0;
+
+		.books-grid {
+			display: grid;
+			gap: 18px;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+
+			// Column-specific grid layouts
+			&.book-col-1 {
+				grid-template-columns: 1fr;
+			}
+
+			&.book-col-2 {
+				grid-template-columns: repeat(2, 1fr);
+			}
+
+			&.book-col-3 {
+				grid-template-columns: repeat(3, 1fr);
+			}
+
+			&.book-col-4 {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			&.book-col-5 {
+				grid-template-columns: repeat(5, 1fr);
+			}
+
+			&.book-col-6 {
+				grid-template-columns: repeat(6, 1fr);
+			}
+		}
+
+		.book-item {
+			background: #fff;
+			border-radius: 8px;
+			overflow: hidden;
+			box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+			transition: box-shadow 0.2s, transform 0.2s;
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			padding: 0;
+			min-width: 0;
+			height: 100%;
+
+			.book-cover {
+				position: relative;
+				height: 220px;
+				background: #f0f0f0;
+				display: flex;
+				align-items: stretch;
+				justify-content: center;
+				overflow: hidden;
+
+				img,
+				.book-cover-placeholder {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+
+				.book-cover-placeholder {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: #999;
+					font-size: 48px;
+
+					&::before {
+						content: "📚";
+					}
+				}
+			}
+
+			.book-overlay {
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: linear-gradient(0deg, rgba(0,0,0,0.7) 80%, rgba(0,0,0,0.1) 100%);
+				color: #fff;
+				border-radius: 0;
+				width: 100%;
+				box-sizing: border-box;
+				z-index: 2;
+				border-bottom-left-radius: 8px;
+				border-bottom-right-radius: 8px;
+
+				.book-overlay-link {
+					display: block;
+					text-decoration: none;
+					color: inherit;
+					transition: opacity 0.2s ease;
+					position: relative;
+					padding: 16px 12px 0 12px;
+				}
+
+				.book-title {
+					font-size: 1.08em;
+					font-weight: 600;
+					margin-bottom: 2px;
+					color: #fff;
+					text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+
+				.book-author {
+					font-size: 0.97em;
+					color: #e0e0e0;
+					text-shadow: 0 1px 4px rgba(0,0,0,0.18);
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: normal;
+					display: block;
+					padding: 0 12px 10px 12px;
+				}
+			}
+		}
+	}
+}

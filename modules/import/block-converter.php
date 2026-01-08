@@ -19,7 +19,7 @@ class TTBP_Block_Converter {
      * @param array $image_url_map Optional map of image URLs to attachment data
      * @return string WordPress blocks format string
      */
-    public function convert_html_to_blocks($html, $image_url_map = array()) {
+    public static function convert_html_to_blocks($html, $image_url_map = array()) {
         if (empty($html)) {
             return '';
         }
@@ -58,7 +58,7 @@ class TTBP_Block_Converter {
         
         // Process each child node
         foreach ($body->childNodes as $node) {
-            $block = $this->node_to_block($node, $dom, $image_url_map);
+            $block = self::node_to_block($node, $dom, $image_url_map);
             if ($block) {
                 // Handle multiple blocks (e.g., paragraph with image extracted, or div with children)
                 if (isset($block[0]) && is_array($block[0])) {
@@ -70,7 +70,7 @@ class TTBP_Block_Converter {
         }
         
         // Convert blocks array to block format string
-        return $this->serialize_blocks($blocks);
+        return self::serialize_blocks($blocks);
     }
     
     /**
@@ -79,7 +79,7 @@ class TTBP_Block_Converter {
      * @param int $post_id Post ID to convert
      * @return bool|WP_Error True on success, WP_Error on failure
      */
-    public function convert_post_to_blocks($post_id) {
+    public static function convert_post_to_blocks($post_id) {
         $post = get_post($post_id);
         
         if (!$post) {
@@ -95,10 +95,10 @@ class TTBP_Block_Converter {
         }
         
         // Build image URL map from existing images in content
-        $image_url_map = $this->extract_image_url_map_from_content($html_content);
+        $image_url_map = self::extract_image_url_map_from_content($html_content);
         
         // Convert to blocks
-        $blocks_content = $this->convert_html_to_blocks($html_content, $image_url_map);
+        $blocks_content = self::convert_html_to_blocks($html_content, $image_url_map);
         
         // Update post content
         $updated = wp_update_post(array(
@@ -119,7 +119,7 @@ class TTBP_Block_Converter {
      * @param string $html HTML content
      * @return array Image URL map
      */
-    private function extract_image_url_map_from_content($html) {
+    private static function extract_image_url_map_from_content($html) {
         $image_url_map = array();
         
         if (empty($html)) {
@@ -150,7 +150,7 @@ class TTBP_Block_Converter {
     /**
      * Convert a DOM node to a WordPress block
      */
-    private function node_to_block($node, $dom, $image_url_map = array()) {
+    private static function node_to_block($node, $dom, $image_url_map = array()) {
         if ($node->nodeType === XML_TEXT_NODE) {
             $text = trim($node->textContent);
             if (empty($text)) {
@@ -178,7 +178,7 @@ class TTBP_Block_Converter {
                 $img_nodes = $node->getElementsByTagName('img');
                 if ($img_nodes->length === 1 && trim($node->textContent) === '') {
                     // Paragraph contains only an image, convert to image block
-                    return $this->node_to_block($img_nodes->item(0), $dom, $image_url_map);
+                    return self::node_to_block($img_nodes->item(0), $dom, $image_url_map);
                 }
                 
                 // Check if paragraph contains images mixed with text
@@ -202,7 +202,7 @@ class TTBP_Block_Converter {
                                 $current_text = '';
                             }
                             // Add image block
-                            $img_block = $this->node_to_block($child, $dom, $image_url_map);
+                            $img_block = self::node_to_block($child, $dom, $image_url_map);
                             if ($img_block) {
                                 $blocks[] = $img_block;
                             }
@@ -225,7 +225,7 @@ class TTBP_Block_Converter {
                 }
                 
                 // Regular paragraph with no images
-                $content = $this->get_inner_html($node, $dom);
+                $content = self::get_inner_html($node, $dom);
                 $sanitized_content = wp_kses_post($content);
                 return array(
                     'blockName' => 'core/paragraph',
@@ -241,7 +241,7 @@ class TTBP_Block_Converter {
             case 'h5':
             case 'h6':
                 $level = (int) substr($tag_name, 1);
-                $content = $this->get_inner_html($node, $dom);
+                $content = self::get_inner_html($node, $dom);
                 $sanitized_content = wp_kses_post($content);
                 return array(
                     'blockName' => 'core/heading',
@@ -251,7 +251,7 @@ class TTBP_Block_Converter {
                 );
                 
             case 'ul':
-                $list_items = $this->extract_list_items($node, $dom, false);
+                $list_items = self::extract_list_items($node, $dom, false);
                 $inner_content = array();
                 $inner_html_parts = array();
                 
@@ -269,7 +269,7 @@ class TTBP_Block_Converter {
                 );
                 
             case 'ol':
-                $list_items = $this->extract_list_items($node, $dom, true);
+                $list_items = self::extract_list_items($node, $dom, true);
                 $inner_content = array();
                 $inner_html_parts = array();
                 
@@ -287,7 +287,7 @@ class TTBP_Block_Converter {
                 );
                 
             case 'blockquote':
-                $content = $this->get_inner_html($node, $dom);
+                $content = self::get_inner_html($node, $dom);
                 $sanitized_content = wp_kses_post($content);
                 return array(
                     'blockName' => 'core/quote',
@@ -298,7 +298,7 @@ class TTBP_Block_Converter {
                 
             case 'pre':
             case 'code':
-                $content = $this->get_inner_html($node, $dom);
+                $content = self::get_inner_html($node, $dom);
                 // For code blocks, preserve the content but escape HTML
                 $escaped_content = esc_html($content);
                 return array(
@@ -395,7 +395,7 @@ class TTBP_Block_Converter {
                 // For div/section/article, recursively process children to convert to blocks
                 $child_blocks = array();
                 foreach ($node->childNodes as $child) {
-                    $child_block = $this->node_to_block($child, $dom, $image_url_map);
+                    $child_block = self::node_to_block($child, $dom, $image_url_map);
                     if ($child_block) {
                         // Handle multiple blocks (e.g., paragraph with image extracted)
                         if (isset($child_block[0]) && is_array($child_block[0])) {
@@ -418,7 +418,7 @@ class TTBP_Block_Converter {
                 // For unknown block-level elements, recursively process children
                 $child_blocks = array();
                 foreach ($node->childNodes as $child) {
-                    $child_block = $this->node_to_block($child, $dom, $image_url_map);
+                    $child_block = self::node_to_block($child, $dom, $image_url_map);
                     if ($child_block) {
                         // Skip inline elements (they have blockName === null)
                         if (isset($child_block['blockName']) && $child_block['blockName'] === null) {
@@ -439,7 +439,7 @@ class TTBP_Block_Converter {
                 }
                 
                 // If no meaningful content, try to extract text and wrap in paragraph
-                $content = $this->get_inner_html($node, $dom);
+                $content = self::get_inner_html($node, $dom);
                 $text_content = trim(strip_tags($content));
                 if (!empty($text_content)) {
                     $sanitized_content = wp_kses_post($content);
@@ -463,7 +463,7 @@ class TTBP_Block_Converter {
     /**
      * Get inner HTML of a node
      */
-    private function get_inner_html($node, $dom) {
+    private static function get_inner_html($node, $dom) {
         $inner_html = '';
         foreach ($node->childNodes as $child) {
             $inner_html .= $dom->saveHTML($child);
@@ -474,10 +474,10 @@ class TTBP_Block_Converter {
     /**
      * Extract list items from ul/ol
      */
-    private function extract_list_items($list_node, $dom, $ordered) {
+    private static function extract_list_items($list_node, $dom, $ordered) {
         $items = array();
         foreach ($list_node->getElementsByTagName('li') as $li) {
-            $content = $this->get_inner_html($li, $dom);
+            $content = self::get_inner_html($li, $dom);
             $items[] = array('content' => $content);
         }
         return $items;
@@ -486,7 +486,7 @@ class TTBP_Block_Converter {
     /**
      * Serialize blocks array to WordPress block format
      */
-    private function serialize_blocks($blocks) {
+    private static function serialize_blocks($blocks) {
         if (empty($blocks)) {
             return '';
         }

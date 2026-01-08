@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "ttbp/book-shelf",
+	"title": "Book Shelf",
+	"category": "widgets",
+	"icon": "book-alt",
+	"description": "Display a shelf of books on your page.",
+	"keywords": ["book", "shelf", "books", "ttbp"],
+	"textdomain": "the-total-book-project",
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./style-index.css",
+	"attributes": {
+		"category": {
+			"type": "array",
+			"default": []
+		},
+		"limit": {
+			"type": "number",
+			"default": 10
+		},
+		"orderby": {
+			"type": "string",
+			"default": "title"
+		},
+		"order": {
+			"type": "string",
+			"default": "ASC"
+		},
+		"showMeta": {
+			"type": "boolean",
+			"default": true
+		},
+		"showExcerpt": {
+			"type": "boolean",
+			"default": true
+		},
+		"columns": {
+			"type": "number",
+			"default": 3
+		},
+		"template": {
+			"type": "string",
+			"default": "grid"
+		}
+	},
+	"supports": {
+		"html": false
+	}
+}
