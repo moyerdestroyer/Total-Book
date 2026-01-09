@@ -1,8 +1,8 @@
 === The Total Book Project ===
 Contributors: ryanmoyer
 Tags: books, library
-Tested up to: 6.8
-Stable tag: 1.1
+Tested up to: 6.9
+Stable tag: 1.2
 Requires PHP: 7.4
 License: GPLv2 or later
 

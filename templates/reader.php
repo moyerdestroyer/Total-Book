@@ -8,9 +8,9 @@ if (!defined('ABSPATH')) {
 }
 
 // Check if theme is a block theme (WordPress 5.9+)
-$is_block_theme = function_exists('wp_is_block_theme') && wp_is_block_theme();
+$ttbp_is_block_theme = function_exists('wp_is_block_theme') && wp_is_block_theme();
 
-if ($is_block_theme) {
+if ($ttbp_is_block_theme) {
   // For block themes, output minimal HTML structure
   ?>
 <!DOCTYPE html>
@@ -114,7 +114,7 @@ $ttbp_categories = !empty($ttbp_category_terms) ? $ttbp_category_terms : array()
 
 <?php
 // Close the template based on theme type
-if ($is_block_theme) {
+if ($ttbp_is_block_theme) {
   ?>
   </div><!-- .wp-site-blocks -->
   <?php wp_footer(); ?>

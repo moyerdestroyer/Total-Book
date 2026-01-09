@@ -6,9 +6,9 @@ Description: A Book plugin/add-on for hosting books on your website.
 Version: 1.1
 Author: Ryan Moyer
 License: GPLv2 or later
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0
+Stable tag: 1.2
 */
 
 // Prevent direct access to this file
@@ -47,7 +47,7 @@ class TTBP_Plugin {
 			add_filter('single_template', array($this, 'ttbp_load_book_template'));
 		}
 	}
-	
+
 	public function ttbp_enqueue_admin_styles($hook) {
 		// Only load on book and chapter post type screens
 		$screen = get_current_screen();
@@ -133,7 +133,6 @@ class TTBP_Plugin {
 		// Only force a plugin template if the user explicitly chose one (not 'theme')
 		if (is_singular('ttbp-book') && $template_name !== 'theme') {
 			$custom_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name . '.php';
-
 			if (file_exists($custom_template)) {
 				return $custom_template;
 			}

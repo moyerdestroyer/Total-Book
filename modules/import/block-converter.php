@@ -440,7 +440,7 @@ class TTBP_Block_Converter {
                 
                 // If no meaningful content, try to extract text and wrap in paragraph
                 $content = self::get_inner_html($node, $dom);
-                $text_content = trim(strip_tags($content));
+                $text_content = trim(wp_strip_all_tags($content));
                 if (!empty($text_content)) {
                     $sanitized_content = wp_kses_post($content);
                     // Remove any remaining div tags and other block-level elements
