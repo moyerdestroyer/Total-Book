@@ -24,7 +24,8 @@ Total Book transforms WordPress into a digital library platform. Features includ
 - Progress tracking
 
 **Integration:**
-- Shortcodes for easy display
+- Book Display block for displaying individual books
+- Book Shelf block for displaying collections of books
 - WordPress admin interface
 
 **GitHub Repository:** [https://github.com/moyerdestroyer/Total-Book](https://github.com/moyerdestroyer/Total-Book)
@@ -38,32 +39,11 @@ Total Book transforms WordPress into a digital library platform. Features includ
 
 = How can I display a single book? =
 
-For displaying a single book cover/link, use: `[ttbp_book]`
+Use the **Book Display** block. Add it to any post or page through the block inserter, then select the book you want to display. The block allows you to customize which elements to show (metadata, table of contents, description) and configure the display settings.
 
-**Parameters:**
-- `id` (required): Book post ID
-- `show_meta` (optional): Show metadata (true/false, default: true)
-- `show_toc` (optional): Show table of contents (true/false, default: true)
-- `show_description` (optional): Show description (true/false, default: true)
+= How can I display a book shelf? =
 
-Example: `[ttbp_book id="123" show_meta="true"]`
-
-= How can display a book shelf? =
-Use the `[ttbp_books]` shortcode.
-
-**Parameters:**
-- `category` : (optional) Filter by category slug(s)
-- `limit` : (optional) Number of books (default: 10)
-- `orderby` : (optional) Sort by (title, date, menu_order, default: title)
-- `order` : (optional) Sort order (ASC/DESC, default: ASC)
-- `show_meta` : (optional) Show metadata (true/false, default: true)
-- `show_excerpt` : (optional) Show excerpt (true/false, default: true)
-- `columns` : (optional) Grid columns (1-6, default: 3)
-
-Examples:
-
-`[ttbp_books category="fiction" limit="6" columns="2"]`
-`[ttbp_books orderby="date" order="DESC" limit="5"]`
+Use the **Book Shelf** block. Add it to any post or page through the block inserter. The block allows you to filter books by category, set the number of books to display, configure sorting options, and customize the grid layout with adjustable columns.
 
 == Screenshots ==
 
@@ -71,6 +51,11 @@ Examples:
 2. screenshot-2.png
 
 == Changelog ==
+
+= 1.2 =
+* Added Book Display block for e-reader compatibility with block theme templates
+* Added Book Shelf block for displaying collections of books
+* Minor bug fixes and improvements
 
 = 1.1 =
 * Security fix: Corrected permissions for AJAX endpoints.
